@@ -1,10 +1,11 @@
 defmodule EspEx.StreamName do
+  alias StreamName
   @moduledoc """
   A StreamName is a module to manage the location where events are written.
   Think of stream names as a URL for where your events are located.
   The StreamName struct provides an easy way to access the data that otherwise
   would be in a String, which would require always validation and take more
-  time to extract the relevant information out of it.
+xtract the relevant information out of it.
   Stream names are **camelCased**.
   Sometimes we refer to "Streams" but we actually mean "Stream names".
   A full stream name might look like: `campaign:command+position-123`.
@@ -26,4 +27,25 @@ defmodule EspEx.StreamName do
   The function `to_string` should convert it back to
   `campaign:command+position-123`
   """
+
+  defstruct(category: "", identifier: nil, types: {})
+
+  def new(category, identifier \\ nil, types \\ {}) do
+    %EspEx.StreamName{category: category, identifier: identifier, types: types}
+  end
+
+  @doc """
+  from_string
+
+  ## Examples
+
+      iex> EspEx.StreamName.from_string("campaign:command+position-123")
+      ["campaign"]
+
+  """
+
+  def from_string(string) do
+    category_string = Regex.run(~r/^\w+/, string)
+
+  end
 end
