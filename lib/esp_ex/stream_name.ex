@@ -31,9 +31,9 @@ defmodule EspEx.StreamName do
   # This enforces the category key as a requirement
   @enforce_keys [:category]
   # defstruct(category: "", identifier: nil, types: {})
-  defstruct(category: "", identifier: nil, types: {})
+  defstruct(category: "", identifier: nil, types: MapSet.new())
 
-  def new(category, identifier \\ nil, types \\ {}) when is_binary(category) do
+  def new(category, identifier \\ nil, types \\ []) when is_binary(category) do
     cond do
       String.trim(category) == "" ->
         raise ArgumentError, message: "category must not be blank"
@@ -42,7 +42,7 @@ defmodule EspEx.StreamName do
       Regex.match?(~r/\W/, category) ->
         raise ArgumentError, message: "category must not contain invalid characters"
       true ->
-        %__MODULE__{category: category, identifier: identifier, types: types}
+        %__MODULE__{category: category, identifier: identifier, types: MapSet.new(types)}
     end
   end
 
@@ -52,12 +52,19 @@ defmodule EspEx.StreamName do
   ## Examples
 
       iex> EspEx.StreamName.from_string("campaign:command+position-123")
-      ["campaign"]
-
+      %EspEx.StreamName{category: "campaign",
+                        identifier: "123",
+                        types: MapSet.new(["command", "position"])}
   """
 
   def from_string(string) do
-    category = Regex.run(~r/^\w+/, string)
+    category = Regex.run(~r/^\w+/, string) |> List.first
+    identifier = Regex.run(~r/\-(\d+)/, string) |> List.last
+    types = Regex.run(~r/\:(.+)\-/, string)
+            |> List.last
+            |> String.split("+")
+            |> MapSet.new()
 
+    new(category, identifier, types)
   end
 end
