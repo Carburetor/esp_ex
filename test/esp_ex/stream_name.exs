@@ -12,13 +12,6 @@ defmodule EspEx.StreamNameTest do
       # to_string: 1
     ]
 
-  describe "EspEx.StreamName.new" do
-    test "creates a struct with new" do
-      struct = %EspEx.StreamName{category: "campaign"}
-      map = new("campaign")
-      assert struct == map
-    end
-  end
   #
   # describe "StreamName.from_string" do
   #   test "campaign:command+position-123" do
@@ -176,43 +169,62 @@ defmodule EspEx.StreamNameTest do
   #   end
   # end
   #
-  # describe "StreamName.new" do
-  #   test "raises when category is blank" do
-  #     assert_raise ArgumentError, fn ->
-  #       new("       ")
-  #     end
-  #   end
-  #
-  #   test "raises when category is not a string" do
-  #     assert_raise FunctionClauseError, fn ->
-  #       new(123)
-  #     end
-  #   end
-  #
-  #   test "raises when category is nil" do
-  #     assert_raise FunctionClauseError, fn ->
-  #       new(nil)
-  #     end
-  #   end
-  #
-  #   test "raises when category contains invalid characters" do
-  #     assert_raise ArgumentError, fn ->
-  #       new("    asd:-sfd  ")
-  #     end
-  #   end
-  #
-  #   test "raises when identifier is not nil or string" do
-  #     assert_raise FunctionClauseError, fn ->
-  #       new("campaign", %{something: 123})
-  #     end
-  #   end
+  describe "StreamName.new" do
+
+    test "creates a struct with new and an arity of 1" do
+      struct = %StreamName{category: "campaign"}
+      map = new("campaign")
+      assert struct == map
+    end
+
+    test "creates a struct with new and an arity of 2" do
+      struct = %StreamName{category: "campaign", identifier: "123"}
+      map = new("campaign", "123")
+      assert struct == map
+    end
+
+    test "creates a struct with new and an arity of 3" do
+      struct = %StreamName{category: "campaign", identifier: "123", types: {"command", "position"}}
+      map = new("campaign", "123", {"command", "position"})
+      assert struct == map
+    end
+    test "raises when category is blank" do
+      assert_raise ArgumentError, fn ->
+        new("       ")
+      end
+    end
+
+    test "raises when category is not a string" do
+      assert_raise FunctionClauseError, fn ->
+        new(123)
+      end
+    end
+
+    test "raises when category is nil" do
+      assert_raise FunctionClauseError, fn ->
+        new(nil)
+      end
+    end
+
+    test "raises when category contains invalid characters" do
+      assert_raise ArgumentError, fn ->
+        new("    asd:-sfd  ")
+      end
+    end
+
+    # NOTE: don't understand
+    # test "raises when identifier is not nil or string" do
+    #   assert_raise FunctionClauseError, fn ->
+    #     new("campaign", %{something: 123})
+    #   end
+    # end
   #
   #   test "raises when types is not a list" do
   #     assert_raise FunctionClauseError, fn ->
   #       new("campaign", "asd-123", %{wrong: 123})
   #     end
   #   end
-  # end
+  end
   #
   # describe "StreamName.to_string" do
   #   test "has types always in the same order" do

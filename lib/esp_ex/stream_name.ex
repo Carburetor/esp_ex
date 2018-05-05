@@ -5,7 +5,7 @@ defmodule EspEx.StreamName do
   Think of stream names as a URL for where your events are located.
   The StreamName struct provides an easy way to access the data that otherwise
   would be in a String, which would require always validation and take more
-xtract the relevant information out of it.
+  time to extract the relevant information out of it.
   Stream names are **camelCased**.
   Sometimes we refer to "Streams" but we actually mean "Stream names".
   A full stream name might look like: `campaign:command+position-123`.
@@ -28,10 +28,22 @@ xtract the relevant information out of it.
   `campaign:command+position-123`
   """
 
+  # This enforces the category key as a requirement
+  @enforce_keys [:category]
+  # defstruct(category: "", identifier: nil, types: {})
   defstruct(category: "", identifier: nil, types: {})
 
-  def new(category, identifier \\ nil, types \\ {}) do
-    %EspEx.StreamName{category: category, identifier: identifier, types: types}
+  def new(category, identifier \\ nil, types \\ {}) when is_binary(category) do
+    cond do
+      String.trim(category) == "" ->
+        raise ArgumentError, message: "category must not be blank"
+      category == nil ->
+        raise FunctionClauseError, message: "category must not be nil"
+      Regex.match?(~r/\W/, category) ->
+        raise ArgumentError, message: "category must not contain invalid characters"
+      true ->
+        %__MODULE__{category: category, identifier: identifier, types: types}
+    end
   end
 
   @doc """
@@ -45,7 +57,7 @@ xtract the relevant information out of it.
   """
 
   def from_string(string) do
-    category_string = Regex.run(~r/^\w+/, string)
+    category = Regex.run(~r/^\w+/, string)
 
   end
 end
