@@ -35,20 +35,20 @@ defmodule EspEx.StreamNameTest do
       assert text == map
     end
 
-    # test "campaign:position" do
-    #   text = from_string("campaign:position")
-    #   map = new("campaign", nil, ["position"])
-    #
-    #   assert text == map
-    # end
-  #
-  #   test "campaign:position+command" do
-  #     text = from_string("campaign:position+command")
-  #     map = new("campaign", nil, ["command", "position"])
-  #
-  #     assert text == map
-  #   end
-  #
+    test "campaign:position" do
+      text = from_string("campaign:position")
+      map = new("campaign", nil, ["position"])
+
+      assert text == map
+    end
+
+    test "campaign:position+command" do
+      text = from_string("campaign:position+command")
+      map = new("campaign", nil, ["command", "position"])
+
+      assert text == map
+    end
+
     # test "campaign:-" do
     #   text = from_string("campaign:-")
     #   map = new("campaign", nil, [])
@@ -84,19 +84,19 @@ defmodule EspEx.StreamNameTest do
   #     assert text == map
   #   end
   #
-  #   test "+" do
-  #     text = from_string("+")
-  #     map = new("+", nil, [])
-  #
-  #     assert text == map
-  #   end
-  #
-    # test "campaign---" do
-    #   text = from_string("campaign---")
-    #   map = new("campaign", "--", [])
+    # test "+" do
+    #   text = from_string("+")
+    #   map = new("+", nil, [])
     #
     #   assert text == map
     # end
+  #
+  # test "campaign---" do
+  #   text = from_string("campaign---")
+  #   map = new("campaign", "--", [])
+  #
+  #   assert text == map
+  # end
   #
   #   test "campaign:command-123+asd:23" do
   #     text = from_string("campaign:command-123+asd:23")
