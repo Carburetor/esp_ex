@@ -1,4 +1,5 @@
 defmodule EspEx.StreamName do
+  alias StreamName
   @moduledoc """
   A StreamName is a module to manage the location where events are written.
   Think of stream names as a URL for where your events are located.
@@ -26,4 +27,91 @@ defmodule EspEx.StreamName do
   The function `to_string` should convert it back to
   `campaign:command+position-123`
   """
+
+  # This enforces the category key as a requirement
+  @enforce_keys [:category]
+  defstruct(category: "", identifier: nil, types: MapSet.new())
+
+
+  # TODO: String.trim everyting to remove white space
+  def new(category, identifier \\ nil, types \\ []) when is_binary(category) do
+    cond do
+      String.trim(category) == "" ->
+        raise ArgumentError, message: "category must not be blank"
+      category == nil ->
+        raise FunctionClauseError, message: "category must not be nil"
+      Regex.match?(~r/\W/, category) ->
+        raise ArgumentError, message: "category must not contain invalid characters"
+      true ->
+        %__MODULE__{category: category,
+                    identifier: identifier,
+                    types: MapSet.new(types)
+                    }
+    end
+  end
+
+  @doc """
+  from_string
+
+  ## Examples
+
+      iex> EspEx.StreamName.from_string("campaign:command+position-123")
+      %EspEx.StreamName{category: "campaign",
+                        identifier: "123",
+                        types: MapSet.new(["command", "position"])}
+  """
+  def from_string(string) do
+    category = category_checker(string)
+    identifier = identifier_checker(string)
+    types = types_checker(string)
+
+    new(category, identifier, types)
+  end
+
+  defp category_checker(string) do
+    Regex.run(~r/^\w+/, string)
+    |> List.first
+  end
+
+  defp identifier_checker(string) do
+    result = Regex.run(~r/\-(\d+)/, string)
+    if result == nil do
+      nil
+    else
+      result |> List.last()
+    end
+  end
+
+  defp types_checker(string) do
+    result = if Regex.match?(~r/-/, string) do
+      Regex.run(~r/:(.+)(?:-)/, string) |> List.last
+    else
+      Regex.run(~r/:(.+)(?:-)?/, string) |> List.last
+    end
+
+    types = String.split(result, "+")
+
+    MapSet.new(types)
+  end
+
+  # @doc """
+  # from_string
+  #
+  # ## Examples
+  #
+  #     iex> map = %EspEx.StreamName{category: "campaign"}
+  #     iex> EspEx.StreamName.to_string(map)
+  #     "campaign"
+  # """
+  # def to_string(map) do
+  #   category = map.category
+  #   # identifier = map.identifier
+  #
+  #   {:ok, category} == {:ok, "#{category}"}
+  # end
+
 end
+
+# :(.+)(?:-)
+# :(.+|\s)(?:-)
+# types = Regex.run(~r/\:(.+)\-?\D/, string)
