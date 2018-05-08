@@ -40,8 +40,6 @@ defmodule EspEx.StreamName do
         raise ArgumentError, message: "category must not be blank"
       category == nil ->
         raise FunctionClauseError, message: "category must not be nil"
-      Regex.match?(~r/\W/, category) ->
-        raise ArgumentError, message: "category must not contain invalid characters"
       true ->
         %__MODULE__{category: category,
                     identifier: identifier,
@@ -69,29 +67,43 @@ defmodule EspEx.StreamName do
   end
 
   defp category_checker(string) do
-    Regex.run(~r/^\w+/, string)
+    String.split(string, ":")
     |> List.first
+    |> String.split("-")
+    |> List.first
+
   end
 
   defp identifier_checker(string) do
-    result = Regex.run(~r/\-(\d+)/, string)
+
+    result = Regex.run(~r/-(.+)/, string)
+
     if result == nil do
       nil
     else
-      result |> List.last()
+      List.last(result)
     end
   end
 
   defp types_checker(string) do
-    result = if Regex.match?(~r/-/, string) do
-      Regex.run(~r/:(.+)(?:-)/, string) |> List.last
+    clean_string = Regex.run(~r/:(.+)/, string)
+
+    if clean_string == nil do
+      MapSet.new([])
     else
-      Regex.run(~r/:(.+)(?:-)?/, string) |> List.last
+      x = clean_string |> List.last
+      result = String.split(x, "-") |> List.first
+      result2 = String.split(result, ":") |> List.last
+
+      if result2 == "" do
+        MapSet.new([])
+      else
+        list = String.split(result2, "+")
+
+        Enum.filter(list, fn(x) -> x != "" end)
+        |> MapSet.new()
+      end
     end
-
-    types = String.split(result, "+")
-
-    MapSet.new(types)
   end
 
   # @doc """
@@ -111,7 +123,3 @@ defmodule EspEx.StreamName do
   # end
 
 end
-
-# :(.+)(?:-)
-# :(.+|\s)(?:-)
-# types = Regex.run(~r/\:(.+)\-?\D/, string)

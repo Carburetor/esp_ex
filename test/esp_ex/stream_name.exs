@@ -49,124 +49,118 @@ defmodule EspEx.StreamNameTest do
       assert text == map
     end
 
-    # test "campaign:-" do
-    #   text = from_string("campaign:-")
-    #   map = new("campaign", nil, [])
-    #
-    #   assert text == map
-    # end
-  #
-  #   test "campaign:" do
-  #     text = from_string("campaign:")
-  #     map = new("campaign", nil, [])
-  #
-  #     assert text == map
-  #   end
-  #
-  #   test "campaign-" do
-  #     text = from_string("campaign-")
-  #     map = new("campaign", nil, [])
-  #
-  #     assert text == map
-  #   end
-  #
-  #   test "campaign+" do
-  #     text = from_string("campaign+")
-  #     map = new("campaign+", nil, [])
-  #
-  #     assert text == map
-  #   end
-  #
-  #   test "campaign" do
-  #     text = from_string("campaign")
-  #     map = new("campaign", nil, [])
-  #
-  #     assert text == map
-  #   end
-  #
-    # test "+" do
-    #   text = from_string("+")
-    #   map = new("+", nil, [])
-    #
-    #   assert text == map
-    # end
-  #
-  # test "campaign---" do
-  #   text = from_string("campaign---")
-  #   map = new("campaign", "--", [])
-  #
-  #   assert text == map
-  # end
-  #
-  #   test "campaign:command-123+asd:23" do
-  #     text = from_string("campaign:command-123+asd:23")
-  #     map = new("campaign", "123+asd:23", ["command"])
-  #
-  #     assert text == map
-  #   end
-  #
-    # test "campaign:command+" do
-    #   text = from_string("campaign:command+")
-    #   map = new("campaign", nil, ["command"])
-    #
-    #   assert text == map
-    # end
-  #
-  #   test "campaign-123" do
-  #     text = from_string("campaign-123")
-  #     map = new("campaign", "123", [])
-  #
-  #     assert text == map
-  #   end
-  #
-  #   test "campaign-123-asd-456" do
-  #     text = from_string("campaign-123-asd-456")
-  #     map = new("campaign", "123-asd-456", [])
-  #
-  #     assert text == map
-  #   end
-  #
-  #   test "raises with empty string" do
-  #     assert_raise ArgumentError, fn ->
-  #       from_string("")
-  #     end
-  #   end
-  #
-  #   test "raises with a blank string" do
-  #     assert_raise ArgumentError, fn ->
-  #       from_string("           ")
-  #     end
-  #   end
-  #
-  #   # test "raises with a blank string" do
-  #   #   assert_raise ArgumentError, fn ->
-  #   #     from_string("           ")
-  #   #   end
-  #   # end
-  #
-  #   test "raises with just : since it's blank" do
-  #     assert_raise ArgumentError, fn ->
-  #       from_string("   :  ")
-  #     end
-  #   end
-  #
-  #   test "raises with just - since it's blank" do
-  #     assert_raise ArgumentError, fn ->
-  #       from_string("   -  ")
-  #     end
-  #   end
-  #
-  #   test "raises with just :- since it's blank" do
-  #     assert_raise ArgumentError, fn ->
-  #       from_string("   :-  ")
-  #     end
-  #   end
-  #
-  #   test "raises with just :- even without spaces around" do
-  #     assert_raise ArgumentError, fn ->
-  #       from_string(":-")
-  #     end
-  #   end
+    test "campaign:-" do
+      text = from_string("campaign:-")
+      map = new("campaign", nil, [])
+
+      assert text == map
+    end
+
+    test "campaign:" do
+      text = from_string("campaign:")
+      map = new("campaign", nil, [])
+
+      assert text == map
+    end
+
+    test "campaign-" do
+      text = from_string("campaign-")
+      map = new("campaign", nil, [])
+
+      assert text == map
+    end
+
+    test "campaign+" do
+      text = from_string("campaign+")
+      map = new("campaign+", nil, [])
+
+      assert text == map
+    end
+
+    test "campaign" do
+      text = from_string("campaign")
+      map = new("campaign", nil, [])
+
+      assert text == map
+    end
+
+    test "+" do
+      text = from_string("+")
+      map = new("+", nil, [])
+
+      assert text == map
+    end
+
+  test "campaign---" do
+    text = from_string("campaign---")
+    map = new("campaign", "--", [])
+
+    assert text == map
+  end
+
+    test "campaign:command-123+asd:23" do
+      text = from_string("campaign:command-123+asd:23")
+      map = new("campaign", "123+asd:23", ["command"])
+
+      assert text == map
+    end
+
+    test "campaign:command+" do
+      text = from_string("campaign:command+")
+      map = new("campaign", nil, ["command"])
+
+      assert text == map
+    end
+
+    test "campaign-123" do
+      text = from_string("campaign-123")
+      map = new("campaign", "123", [])
+
+      assert text == map
+    end
+
+    test "campaign-123-asd-456" do
+      text = from_string("campaign-123-asd-456")
+      map = new("campaign", "123-asd-456", [])
+
+      assert text == map
+    end
+
+    test "raises with empty string" do
+      assert_raise ArgumentError, fn ->
+        from_string("")
+      end
+    end
+
+    test "raises with a blank string" do
+      assert_raise ArgumentError, fn ->
+        from_string("           ")
+      end
+    end
+
+    test "raises with just : since it's blank" do
+      assert_raise ArgumentError, fn ->
+        from_string("   :  ")
+      end
+    end
+
+    test "raises with just - since it's blank" do
+      assert_raise ArgumentError, fn ->
+        from_string("   -  ")
+      end
+    end
+
+    test "raises with just :- since it's blank" do
+      assert_raise ArgumentError, fn ->
+        from_string("   :-  ")
+      end
+    end
+
+    test "raises with just :- even without spaces around" do
+      assert_raise ArgumentError, fn ->
+        from_string(":-")
+      end
+    end
   end
 
   describe "StreamName.new" do
@@ -211,11 +205,12 @@ defmodule EspEx.StreamNameTest do
       end
     end
 
-    test "raises when category contains invalid characters" do
-      assert_raise ArgumentError, fn ->
-        new("    asd:-sfd  ")
-      end
-    end
+    # NOTE: Invalid test - we can just trim this.
+    # test "trims the white space from category" do
+    #   assert_raise ArgumentError, fn ->
+    #     new("    asd:-sfd  ")
+    #   end
+    # end
 
     # NOTE: don't understand
     # test "raises when identifier is not nil or string" do
@@ -330,3 +325,18 @@ defmodule EspEx.StreamNameTest do
   #   end
   # end
 end
+
+
+# campaign:command+position-123
+# campaign:position+command-123
+# campaign:position-123
+# campaign:position
+# ampaign:position+command
+# campaign:command-123+asd:23
+# campaign:command+
+# campaign-123
+# +
+# campaign---
+# campaign:-
+# campaign+
+# campaign-

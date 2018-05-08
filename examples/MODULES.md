@@ -9,7 +9,7 @@
   - from_string(string) returns %StreamName
   - to_string(%StreamName)
   - has_all_types checks if a list is a sublist of stuct types
-  - is_category
+  - category?
   - position_identifier(%StreamName, uint) returns string ("foo-123/1")
 - EspEx.EventBus
   - @callback write
