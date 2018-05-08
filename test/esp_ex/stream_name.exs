@@ -192,25 +192,18 @@ defmodule EspEx.StreamNameTest do
     end
 
     # NOTE: Look into this one again..
-    # test "raises when category is not a string" do
-    #   assert_raise FunctionClauseError, fn ->
-    #     struct = new(123)
-    #     assert struct.category == 123
-    #   end
-    # end
+    test "raises when category is not a string" do
+      assert_raise FunctionClauseError, fn ->
+        struct = new(123)
+        assert struct.category == 123
+      end
+    end
 
     test "raises when category is nil" do
       assert_raise FunctionClauseError, fn ->
         new(nil)
       end
     end
-
-    # NOTE: Invalid test - we can just trim this.
-    # test "trims the white space from category" do
-    #   assert_raise ArgumentError, fn ->
-    #     new("    asd:-sfd  ")
-    #   end
-    # end
 
     # NOTE: don't understand
     # test "raises when identifier is not nil or string" do
@@ -226,14 +219,13 @@ defmodule EspEx.StreamNameTest do
   #   end
   end
   #
-  # describe "StreamName.to_string" do
-  #   test "has types always in the same order" do
-  #     map = new("campaign", "123", ["position", "command"])
-  #     text = "campaign:command+position-123"
-  #
-  #     assert to_string(map) == text
-  #   end
-  # end
+  describe "StreamName.to_string" do
+    # test "has types always in the same order" do
+    #   map = new("campaign", "123", ["position", "command"])
+    #   text = "campaign:command+position-123"
+    #
+    #   assert to_string(map) == text
+    # end
   #
   # describe "StreamName.has_all_types" do
   #   test "is true when types is a sublist of StreamName types" do
@@ -271,7 +263,7 @@ defmodule EspEx.StreamNameTest do
   #
   #     assert StreamName.has_all_types(map, ["command"]) == false
   #   end
-  # end
+  end
   #
   # describe "StreamName.is_category" do
   #   test "is true when StreamName has no identifier but has types" do
@@ -325,18 +317,3 @@ defmodule EspEx.StreamNameTest do
   #   end
   # end
 end
-
-
-# campaign:command+position-123
-# campaign:position+command-123
-# campaign:position-123
-# campaign:position
-# ampaign:position+command
-# campaign:command-123+asd:23
-# campaign:command+
-# campaign-123
-# +
-# campaign---
-# campaign:-
-# campaign+
-# campaign-

@@ -34,7 +34,7 @@ defmodule EspEx.StreamName do
 
 
   # TODO: String.trim everyting to remove white space
-  def new(category, identifier \\ nil, types \\ []) when is_binary(category) do
+  def new(category, identifier \\ nil, types \\ []) do
     cond do
       String.trim(category) == "" ->
         raise ArgumentError, message: "category must not be blank"
@@ -99,27 +99,41 @@ defmodule EspEx.StreamName do
         MapSet.new([])
       else
         list = String.split(result2, "+")
-
         Enum.filter(list, fn(x) -> x != "" end)
         |> MapSet.new()
       end
     end
   end
 
-  # @doc """
-  # from_string
-  #
-  # ## Examples
-  #
-  #     iex> map = %EspEx.StreamName{category: "campaign"}
-  #     iex> EspEx.StreamName.to_string(map)
-  #     "campaign"
-  # """
-  # def to_string(map) do
-  #   category = map.category
-  #   # identifier = map.identifier
-  #
-  #   {:ok, category} == {:ok, "#{category}"}
-  # end
+  @doc """
+  from_string
+
+  ## Examples
+
+      iex> map = %EspEx.StreamName{category: "campaign", identifier: "123", types: MapSet.new(["command", "position"])}
+      iex> EspEx.StreamName.to_string(map)
+      "campaign:command+position-123"
+
+      iex> map = %EspEx.StreamName{category: "campaign", types: MapSet.new(["command", "position"])}
+      iex> EspEx.StreamName.to_string(map)
+      "campaign:command+position"
+
+      iex> map = %EspEx.StreamName{category: "campaign"}
+      iex> EspEx.StreamName.to_string(map)
+      "campaign"
+
+      iex> map = %EspEx.StreamName{category: "campaign", identifier: "123"}
+      iex> EspEx.StreamName.to_string(map)
+      "campaign-123"
+  """
+  def to_string(map) do
+    category = map.category
+    identifier = map.identifier
+
+    x = MapSet.to_list(map.types)
+    types = Enum.join(x, "+")
+
+    "#{category}" <> ":#{types}" <> "-#{identifier}"
+  end
 
 end
