@@ -32,17 +32,17 @@ defmodule EspEx.StreamName do
   @enforce_keys [:category]
   defstruct(category: "", identifier: nil, types: [])
 
-
-  # TODO: String.trim everyting to remove white space
-  def new(category, identifier \\ nil, types \\ []) do
+  def new(category,
+          identifier \\ nil,
+          types \\ [])
+          when is_bitstring(category) and
+          is_nil(identifier) or is_bitstring(identifier) do
+    category = String.trim(category)
+    types = Enum.map(types, fn(x) -> String.trim(x) end)
     cond do
-      String.trim(category) == "" ->
+      category == "" ->
         raise ArgumentError, message: "category must not be blank"
-      category == nil ->
-        raise FunctionClauseError, message: "category must not be nil"
-      # is_binary(identifier) != true or is_nil(identifier) != true ->
-      #   raise FunctionClauseError, message: "identifier must be string or nil"
-      true  ->
+      true ->
         %__MODULE__{category: category,
                     identifier: identifier,
                     types: :ordsets.from_list(types)

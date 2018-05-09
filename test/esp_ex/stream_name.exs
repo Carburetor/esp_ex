@@ -204,11 +204,11 @@ defmodule EspEx.StreamNameTest do
       end
     end
 
-    # test "raises when identifier is not nil or string" do
-    #   assert_raise FunctionClauseError, fn ->
-    #     new("campaign", %{something: 123})
-    #   end
-    # end
+    test "raises when identifier is not nil or string" do
+      assert_raise FunctionClauseError, fn ->
+        new("campaign", %{something: 123})
+      end
+    end
 
     test "raises when types is not a list" do
       assert_raise FunctionClauseError, fn ->
