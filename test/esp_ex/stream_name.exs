@@ -216,7 +216,7 @@ defmodule EspEx.StreamNameTest do
       end
     end
   end
-  #
+
   describe "StreamName.to_string" do
     test "has types always in the same order as in alphabetized order" do
       map = new("campaign", "123", ["position", "command"])
@@ -226,93 +226,93 @@ defmodule EspEx.StreamNameTest do
     end
   end
 
-  describe "StreamName.has_all_types?" do
+  describe "StreamName.has_all_types" do
     test "is true when types is a sublist of StreamName types" do
       map = new("campaign", nil, ["position", "command", "snapshot"])
 
-      assert StreamName.has_all_types?(map, ["position", "snapshot"]) == true
+      assert StreamName.has_all_types(map, ["position", "snapshot"]) == true
     end
 
     test "is true when types is empty" do
       map = new("campaign", nil, ["position", "command", "snapshot"])
 
-      assert StreamName.has_all_types?(map, []) == true
+      assert StreamName.has_all_types(map, []) == true
     end
 
     test "is true when types is empty and StreamName has no types" do
       map = new("campaign", nil, [])
 
-      assert StreamName.has_all_types?(map, []) == true
+      assert StreamName.has_all_types(map, []) == true
     end
 
     test "is true when types has one type and StreamName has no types" do
       map = new("campaign", nil, ["command"])
 
-      assert StreamName.has_all_types?(map, []) == true
+      assert StreamName.has_all_types(map, []) == true
     end
 
     test "is true when types matches StreamName types" do
       map = new("campaign", nil, ["command", "position"])
 
-      assert StreamName.has_all_types?(map, ["position", "command"]) == true
+      assert StreamName.has_all_types(map, ["position", "command"]) == true
     end
 
     test "is false when types don't match StreamName types" do
       map = new("campaign", nil, ["position"])
 
-      assert StreamName.has_all_types?(map, ["command"]) == false
+      assert StreamName.has_all_types(map, ["command"]) == false
     end
   end
 
-  describe "StreamName.is_category?" do
+  describe "StreamName.is_category" do
     test "is true when StreamName has no identifier but has types" do
       map = new("campaign", nil, ["position", "command", "snapshot"])
 
-      assert StreamName.is_category?(map) == true
+      assert StreamName.is_category(map) == true
     end
 
     test "is true when StreamName has no identifier and no types" do
       map = new("campaign", nil, [])
 
-      assert StreamName.is_category?(map) == true
+      assert StreamName.is_category(map) == true
     end
 
     test "is false when StreamName has identifier" do
       map = new("campaign", "123", ["command"])
 
-      assert StreamName.is_category?(map) == false
+      assert StreamName.is_category(map) == false
     end
-  # end
-  #
-  # describe "StreamName.position_identifier" do
-  #   test "raises when position is less than 0" do
-  #     map = new("campaign", "123", ["command"])
-  #
-  #     assert_raise ArgumentError, fn ->
-  #       StreamName.position_identifier(map, -1)
-  #     end
-  #   end
-  #
-  #   test "raises when position is not an integer or nil" do
-  #     map = new("campaign", "123", ["command"])
-  #
-  #     assert_raise ArgumentError, fn ->
-  #       StreamName.position_identifier(map, 2.3)
-  #     end
-  #   end
-  #
-  #   test "returns campaign:command-123/1 when position is 1" do
-  #     map = new("campaign", "123", ["command"])
-  #     text = "campaign:command-123/1"
-  #
-  #     assert StreamName.position_identifier(map, 1) == text
-  #   end
-  #
-  #   test "returns campaign:command-123 when position is nil" do
-  #     map = new("campaign", "123", ["command"])
-  #     text = "campaign:command-123"
-  #
-  #     assert StreamName.position_identifier(map, nil) == text
-  #   end
+  end
+
+  describe "StreamName.position_identifier" do
+    test "raises when position is less than 0" do
+      map = new("campaign", "123", ["command"])
+
+      assert_raise ArgumentError, fn ->
+        StreamName.position_identifier(map, -1)
+      end
+    end
+
+    test "raises when position is not an integer or nil" do
+      map = new("campaign", "123", ["command"])
+
+      assert_raise ArgumentError, fn ->
+        StreamName.position_identifier(map, 2.3)
+      end
+    end
+
+    test "returns campaign:command-123/1 when position is 1" do
+      map = new("campaign", "123", ["command"])
+      text = "campaign:command-123/1"
+
+      assert StreamName.position_identifier(map, 1) == text
+    end
+
+    test "returns campaign:command-123 when position is nil" do
+      map = new("campaign", "123", ["command"])
+      text = "campaign:command-123"
+
+      assert StreamName.position_identifier(map, nil) == text
+    end
   end
 end

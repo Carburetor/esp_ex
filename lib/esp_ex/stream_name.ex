@@ -40,7 +40,9 @@ defmodule EspEx.StreamName do
         raise ArgumentError, message: "category must not be blank"
       category == nil ->
         raise FunctionClauseError, message: "category must not be nil"
-      true ->
+      # is_binary(identifier) != true or is_nil(identifier) != true ->
+      #   raise FunctionClauseError, message: "identifier must be string or nil"
+      true  ->
         %__MODULE__{category: category,
                     identifier: identifier,
                     types: :ordsets.from_list(types)
@@ -124,7 +126,7 @@ defmodule EspEx.StreamName do
       iex> EspEx.StreamName.to_string(map)
       "campaign-123"
   """
-  defimpl String.Chars do
+  defimpl String.Chars, for: EspEx.StreamName do
     def to_string(map) do
       category = map.category
       identifier = map.identifier
@@ -147,13 +149,12 @@ defmodule EspEx.StreamName do
 
   @doc """
   ## Examples
-
       iex> map = %EspEx.StreamName{category: "campaign", identifier: nil, types: :ordsets.from_list(["command", "position"])}
       iex> list = ["command", "position"]
-      iex> EspEx.StreamName.has_all_types?(map, list)
+      iex> EspEx.StreamName.has_all_types(map, list)
       true
   """
-  def has_all_types?(map, list) do
+  def has_all_types(map, list) do
     types = map.types
 
     Enum.all?(list, fn x -> x in types end)
@@ -163,13 +164,31 @@ defmodule EspEx.StreamName do
   ## Examples
 
       iex> map = %EspEx.StreamName{category: "campaign", identifier: 123, types: :ordsets.from_list(["command", "position"])}
-      iex> EspEx.StreamName.is_category?(map)
+      iex> EspEx.StreamName.is_category(map)
       false
   """
-  def is_category?(map) do
+  def is_category(map) do
       map.identifier == nil
   end
 
-  
+  @doc """
+  ## Examples
+
+      iex> map = %EspEx.StreamName{category: "campaign", identifier: 123, types: :ordsets.from_list(["command", "position"])}
+      iex> EspEx.StreamName.position_identifier(map, 1)
+      "campaign:command+position-123/1"
+  """
+  def position_identifier(map, position) do
+    cond do
+      position < 0 ->
+        raise ArgumentError, message: "position must not be less than 0"
+      is_float(position) ->
+        raise ArgumentError, message: "position must not be a float"
+      is_nil(position) ->
+        to_string(map)
+      true ->
+        to_string(map) <> "/#{position}"
+    end
+  end
 
 end
