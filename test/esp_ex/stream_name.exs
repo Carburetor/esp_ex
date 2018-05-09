@@ -8,8 +8,7 @@ defmodule EspEx.StreamNameTest do
       new: 3,
       new: 2,
       new: 1,
-      from_string: 1,
-      # to_string: 1
+      from_string: 1
     ]
 
   #
@@ -180,7 +179,7 @@ defmodule EspEx.StreamNameTest do
     test "creates a struct with new and an arity of 3" do
       struct = %StreamName{category: "campaign",
                           identifier: "123",
-                          types: MapSet.new(["command", "position"])
+                          types: :ordsets.from_list(["command", "position"])
                           }
       map = new("campaign", "123", ["command", "position"])
       assert struct == map
@@ -205,84 +204,84 @@ defmodule EspEx.StreamNameTest do
       end
     end
 
-    # NOTE: don't understand
     # test "raises when identifier is not nil or string" do
     #   assert_raise FunctionClauseError, fn ->
     #     new("campaign", %{something: 123})
     #   end
     # end
-  #
-  #   test "raises when types is not a list" do
-  #     assert_raise FunctionClauseError, fn ->
-  #       new("campaign", "asd-123", %{wrong: 123})
-  #     end
-  #   end
+
+    test "raises when types is not a list" do
+      assert_raise FunctionClauseError, fn ->
+        new("campaign", "asd-123", %{wrong: 123})
+      end
+    end
   end
   #
   describe "StreamName.to_string" do
-    # test "has types always in the same order" do
-    #   map = new("campaign", "123", ["position", "command"])
-    #   text = "campaign:command+position-123"
-    #
-    #   assert to_string(map) == text
-    # end
-  #
-  # describe "StreamName.has_all_types" do
-  #   test "is true when types is a sublist of StreamName types" do
-  #     map = new("campaign", nil, ["position", "command", "snapshot"])
-  #
-  #     assert StreamName.has_all_types(map, ["position", "snapshot"]) == true
-  #   end
-  #
-  #   test "is true when types is empty" do
-  #     map = new("campaign", nil, ["position", "command", "snapshot"])
-  #
-  #     assert StreamName.has_all_types(map, []) == true
-  #   end
-  #
-  #   test "is true when types is empty and StreamName has no types" do
-  #     map = new("campaign", nil, [])
-  #
-  #     assert StreamName.has_all_types(map, []) == true
-  #   end
-  #
-  #   test "is true when types has one type and StreamName has no types" do
-  #     map = new("campaign", nil, ["command"])
-  #
-  #     assert StreamName.has_all_types(map, []) == true
-  #   end
-  #
-  #   test "is true when types matches StreamName types" do
-  #     map = new("campaign", nil, ["command", "position"])
-  #
-  #     assert StreamName.has_all_types(map, ["position", "command"]) == true
-  #   end
-  #
-  #   test "is false when types don't match StreamName types" do
-  #     map = new("campaign", nil, ["position"])
-  #
-  #     assert StreamName.has_all_types(map, ["command"]) == false
-  #   end
+    test "has types always in the same order as in alphabetized order" do
+      map = new("campaign", "123", ["position", "command"])
+      text = "campaign:command+position-123"
+
+      assert to_string(map) == text
+    end
   end
-  #
-  # describe "StreamName.is_category" do
-  #   test "is true when StreamName has no identifier but has types" do
-  #     map = new("campaign", nil, ["position", "command", "snapshot"])
-  #
-  #     assert StreamName.is_category(map) == true
-  #   end
-  #
-  #   test "is true when StreamName has no identifier and no types" do
-  #     map = new("campaign", nil, [])
-  #
-  #     assert StreamName.is_category(map) == true
-  #   end
-  #
-  #   test "is false when StreamName has identifier" do
-  #     map = new("campaign", "123", ["command"])
-  #
-  #     assert StreamName.is_category(map) == false
-  #   end
+
+  describe "StreamName.has_all_types?" do
+    test "is true when types is a sublist of StreamName types" do
+      map = new("campaign", nil, ["position", "command", "snapshot"])
+
+      assert StreamName.has_all_types?(map, ["position", "snapshot"]) == true
+    end
+
+    test "is true when types is empty" do
+      map = new("campaign", nil, ["position", "command", "snapshot"])
+
+      assert StreamName.has_all_types?(map, []) == true
+    end
+
+    test "is true when types is empty and StreamName has no types" do
+      map = new("campaign", nil, [])
+
+      assert StreamName.has_all_types?(map, []) == true
+    end
+
+    test "is true when types has one type and StreamName has no types" do
+      map = new("campaign", nil, ["command"])
+
+      assert StreamName.has_all_types?(map, []) == true
+    end
+
+    test "is true when types matches StreamName types" do
+      map = new("campaign", nil, ["command", "position"])
+
+      assert StreamName.has_all_types?(map, ["position", "command"]) == true
+    end
+
+    test "is false when types don't match StreamName types" do
+      map = new("campaign", nil, ["position"])
+
+      assert StreamName.has_all_types?(map, ["command"]) == false
+    end
+  end
+
+  describe "StreamName.is_category?" do
+    test "is true when StreamName has no identifier but has types" do
+      map = new("campaign", nil, ["position", "command", "snapshot"])
+
+      assert StreamName.is_category?(map) == true
+    end
+
+    test "is true when StreamName has no identifier and no types" do
+      map = new("campaign", nil, [])
+
+      assert StreamName.is_category?(map) == true
+    end
+
+    test "is false when StreamName has identifier" do
+      map = new("campaign", "123", ["command"])
+
+      assert StreamName.is_category?(map) == false
+    end
   # end
   #
   # describe "StreamName.position_identifier" do
@@ -315,5 +314,5 @@ defmodule EspEx.StreamNameTest do
   #
   #     assert StreamName.position_identifier(map, nil) == text
   #   end
-  # end
+  end
 end
