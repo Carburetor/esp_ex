@@ -100,33 +100,32 @@ defmodule EspEx.StreamName do
       iex> EspEx.StreamName.to_string(map)
       "campaign:command+position-123"
   """
+
   defimpl String.Chars, for: EspEx.StreamName do
     def to_string(map) do
-      category = map.category
-      identifier = map.identifier
+      identifier = identifier_checker(map)
+      types = types_checker(map)
 
-      list = :ordsets.to_list(map.types)
-      types = Enum.join(list, "+")
+      "#{map.category}#{types}#{identifier}"
+    end
 
-      cond do
-        identifier == nil && types == "" ->
-          "#{category}"
-        identifier == nil ->
-          "#{category}:#{types}"
-        types == "" ->
-          "#{category}-#{identifier}"
-        identifier != nil && types != "" ->
-          "#{category}:#{types}-#{identifier}"
+    defp identifier_checker(map) do
+      if map == [] do
+        ""
+      else
+        "-#{map.identifier}"
+      end
+    end
+
+    defp types_checker(map) do
+      if map.types == [] do
+        ""
+      else
+        ":#{Enum.join(map.types, "+")}"
       end
     end
   end
-
-  # defimpl String.Chars, for: EspEx.StreamName do
-  #   def to_string(map) do
-  #
-  #   end
-  # end
-
+  
   @doc """
   ## Examples
 

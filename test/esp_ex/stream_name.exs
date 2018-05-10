@@ -190,11 +190,9 @@ defmodule EspEx.StreamNameTest do
       end
     end
 
-    # NOTE: Look into this one again..
     test "raises when category is not a string" do
       assert_raise FunctionClauseError, fn ->
-        struct = new(123)
-        assert struct.category == 123
+        new(123)
       end
     end
 
