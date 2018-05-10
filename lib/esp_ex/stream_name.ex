@@ -135,7 +135,9 @@ defmodule EspEx.StreamName do
       true
   """
   def has_all_types(map, list) do
-    Enum.all?(list, fn x -> x in map.types end)
+    list
+    |> :ordsets.from_list()
+    |> :ordsets.is_subset(map.types)
   end
 
   @doc """
