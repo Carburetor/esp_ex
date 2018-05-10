@@ -60,23 +60,22 @@ defmodule EspEx.StreamName do
                         types: :ordsets.from_list(["command", "position"])}
   """
   def from_string(string) do
-    category = category_builder(string)
-    identifier = identifier_builder(string)
-    types = types_builder(string)
+    category = category_extractor(string)
+    identifier = identifier_extractor(string)
+    types = types_extractor(string, category, identifier)
 
     new(category, identifier, types)
   end
 
-  defp category_builder(string) do
+  defp category_extractor(string) do
     String.split(string, ":")
     |> List.first
     |> String.split("-")
     |> List.first
   end
 
-  defp identifier_builder(string) do
+  defp identifier_extractor(string) do
     identifier = Regex.run(~r/-(.+)/, string)
-
     if identifier == nil do
       nil
     else
@@ -84,45 +83,22 @@ defmodule EspEx.StreamName do
     end
   end
 
-  defp types_builder(string) do
-    clean_string = Regex.run(~r/:(.+)/, string)
+  defp types_extractor(string, category, identifier) do
+    types = String.trim_leading(string, "#{category}")
+    |> String.trim_leading(":")
+    |> String.trim_trailing("-#{identifier}")
+    |> String.trim_trailing("+")
+    |> String.split("+")
 
-    if clean_string == nil do
-      :ordsets.new()
-    else
-      x = clean_string |> List.last
-      result = String.split(x, "-") |> List.first
-      result2 = String.split(result, ":") |> List.last
-
-      if result2 == "" do
-        :ordsets.new()
-      else
-        list = String.split(result2, "+")
-        Enum.filter(list, fn(x) -> x != "" end)
-        |> :ordsets.from_list()
-      end
-    end
+    if types == [""] do :ordsets.new() else :ordsets.from_list(types) end
   end
 
-  # TODO: Move some of these tests
   @doc """
   ## Examples
 
       iex> map = %EspEx.StreamName{category: "campaign", identifier: "123", types: :ordsets.from_list(["command", "position"])}
       iex> EspEx.StreamName.to_string(map)
       "campaign:command+position-123"
-
-      iex> map = %EspEx.StreamName{category: "campaign", types: :ordsets.from_list(["command", "position"])}
-      iex> EspEx.StreamName.to_string(map)
-      "campaign:command+position"
-
-      iex> map = %EspEx.StreamName{category: "campaign"}
-      iex> EspEx.StreamName.to_string(map)
-      "campaign"
-
-      iex> map = %EspEx.StreamName{category: "campaign", identifier: "123"}
-      iex> EspEx.StreamName.to_string(map)
-      "campaign-123"
   """
   defimpl String.Chars, for: EspEx.StreamName do
     def to_string(map) do
@@ -145,8 +121,15 @@ defmodule EspEx.StreamName do
     end
   end
 
+  # defimpl String.Chars, for: EspEx.StreamName do
+  #   def to_string(map) do
+  #
+  #   end
+  # end
+
   @doc """
   ## Examples
+
       iex> map = %EspEx.StreamName{category: "campaign", identifier: nil, types: :ordsets.from_list(["command", "position"])}
       iex> list = ["command", "position"]
       iex> EspEx.StreamName.has_all_types(map, list)
