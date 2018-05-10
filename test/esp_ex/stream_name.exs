@@ -11,7 +11,6 @@ defmodule EspEx.StreamNameTest do
       from_string: 1
     ]
 
-  #
   describe "StreamName.from_string" do
     test "campaign:command+position-123" do
       text = from_string("campaign:command+position-123")
@@ -90,12 +89,12 @@ defmodule EspEx.StreamNameTest do
       assert text == map
     end
 
-  test "campaign---" do
-    text = from_string("campaign---")
-    map = new("campaign", "--", [])
+    test "campaign---" do
+      text = from_string("campaign---")
+      map = new("campaign", "--", [])
 
-    assert text == map
-  end
+      assert text == map
+    end
 
     test "campaign:command-123+asd:23" do
       text = from_string("campaign:command-123+asd:23")
@@ -163,27 +162,6 @@ defmodule EspEx.StreamNameTest do
   end
 
   describe "StreamName.new" do
-
-    test "creates a struct with new and an arity of 1" do
-      struct = %StreamName{category: "campaign"}
-      map = new("campaign")
-      assert struct == map
-    end
-
-    test "creates a struct with new and an arity of 2" do
-      struct = %StreamName{category: "campaign", identifier: "123"}
-      map = new("campaign", "123")
-      assert struct == map
-    end
-
-    test "creates a struct with new and an arity of 3" do
-      struct = %StreamName{category: "campaign",
-                          identifier: "123",
-                          types: :ordsets.from_list(["command", "position"])
-                          }
-      map = new("campaign", "123", ["command", "position"])
-      assert struct == map
-    end
     test "raises when category is blank" do
       assert_raise ArgumentError, fn ->
         new("       ")
@@ -216,7 +194,7 @@ defmodule EspEx.StreamNameTest do
   end
 
   describe "StreamName.to_string" do
-    test "has types always in the same order as in alphabetized order" do
+    test "has types always in the same order" do
       map = new("campaign", "123", ["position", "command"])
       text = "campaign:command+position-123"
 
