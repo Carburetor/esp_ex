@@ -39,14 +39,13 @@ defmodule EspEx.StreamName do
           is_nil(identifier) or is_bitstring(identifier) do
     category = String.trim(category)
     types = Enum.map(types, fn(x) -> String.trim(x) end)
-    cond do
-      category == "" ->
-        raise ArgumentError, message: "category must not be blank"
-      true ->
-        %__MODULE__{category: category,
-                    identifier: identifier,
-                    types: :ordsets.from_list(types)
-                    }
+    if category == "" do
+      raise ArgumentError, message: "category must not be blank"
+    else
+      %__MODULE__{category: category,
+                  identifier: identifier,
+                  types: :ordsets.from_list(types)
+                  }
     end
   end
 
@@ -61,32 +60,31 @@ defmodule EspEx.StreamName do
                         types: :ordsets.from_list(["command", "position"])}
   """
   def from_string(string) do
-    category = category_checker(string)
-    identifier = identifier_checker(string)
-    types = types_checker(string)
+    category = category_builder(string)
+    identifier = identifier_builder(string)
+    types = types_builder(string)
 
     new(category, identifier, types)
   end
 
-  defp category_checker(string) do
+  defp category_builder(string) do
     String.split(string, ":")
     |> List.first
     |> String.split("-")
     |> List.first
-
   end
 
-  defp identifier_checker(string) do
-    result = Regex.run(~r/-(.+)/, string)
+  defp identifier_builder(string) do
+    identifier = Regex.run(~r/-(.+)/, string)
 
-    if result == nil do
+    if identifier == nil do
       nil
     else
-      List.last(result)
+      List.last(identifier)
     end
   end
 
-  defp types_checker(string) do
+  defp types_builder(string) do
     clean_string = Regex.run(~r/:(.+)/, string)
 
     if clean_string == nil do
