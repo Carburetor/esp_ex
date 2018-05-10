@@ -1,5 +1,4 @@
 defmodule EspEx.StreamName do
-  alias StreamName
   @moduledoc """
   A StreamName is a module to manage the location where events are written.
   Think of stream names as a URL for where your events are located.
@@ -147,10 +146,6 @@ defmodule EspEx.StreamName do
       iex> EspEx.StreamName.is_category(map)
       false
   """
-  # def is_category(map) do
-  #     map.identifier == nil
-  # end
-
   def is_category(%__MODULE__{identifier: nil}), do: true
   def is_category(%__MODULE__{}), do: false
 
