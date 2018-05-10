@@ -125,7 +125,7 @@ defmodule EspEx.StreamName do
       end
     end
   end
-  
+
   @doc """
   ## Examples
 
@@ -135,9 +135,7 @@ defmodule EspEx.StreamName do
       true
   """
   def has_all_types(map, list) do
-    types = map.types
-
-    Enum.all?(list, fn x -> x in types end)
+    Enum.all?(list, fn x -> x in map.types end)
   end
 
   @doc """
@@ -147,9 +145,12 @@ defmodule EspEx.StreamName do
       iex> EspEx.StreamName.is_category(map)
       false
   """
-  def is_category(map) do
-      map.identifier == nil
-  end
+  # def is_category(map) do
+  #     map.identifier == nil
+  # end
+
+  def is_category(%__MODULE__{identifier: nil}), do: true
+  def is_category(%__MODULE__{}), do: false
 
   @doc """
   ## Examples
