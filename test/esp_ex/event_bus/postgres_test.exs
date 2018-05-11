@@ -32,17 +32,20 @@ defmodule EspEx.EventBus.PostgresTest do
 
     {:ok, pid} = Postgrex.start_link(db_config)
     IO.inspect Process.whereis(EspEx.Repo)
-    #Postgrex.query!(pid, "notify dave, 'dave'", [])
+    Postgrex.query!(pid, "notify dave, 'cool'", [])
 
-    Ecto.Adapters.SQL.query(EspEx.Repo, "notify dave, 'cool'", [])
+    #Ecto.Adapters.SQL.query(EspEx.Repo, "notify dave, 'cool'", [])
+    Ecto.Adapters.SQL.query(EspEx.Repo, "pg_notify('dave', 'cool')", [])
 
     #:timer.sleep(1000)
-    Postgres.notify("dave", "something")
+    #Postgres.notify("dave", "something")
 
-    receive do
-      notification -> 
-        IO.inspect notification
-    end
+    assert_received {:notification, me, ref, "dave", "cool"}
+
+    #receive do
+    #  notification -> 
+    #    IO.inspect notification
+    #end
 
     #IO.inspect(pid)
   end
