@@ -7,4 +7,7 @@ config :logger,
   utc_log: true,
   compile_time_purge_level: :debug
 
+config :ecto, json_library: Jason
+config :esp_ex, EspEx.Repo, types: EspEx.PostgresTypes
+
 import_config "./environment/#{Mix.env()}.exs"
