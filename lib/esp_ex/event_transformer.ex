@@ -19,14 +19,14 @@ defmodule EspEx.EventTransformer do
               struct | EspEx.Event.Unknown.t()
 
   defmacro __using__(opts \\ []) do
-    target_events_module = Keyword.get(opts, :events_module)
+    events_module = Keyword.get(opts, :events_module, __CALLER__.module)
 
-    quote do
+    quote location: :keep do
       @behaviour unquote(__MODULE__)
 
       @impl unquote(__MODULE__)
       def to_event(%RawEvent{} = raw_event) do
-        events_module = unquote(target_events_module)
+        events_module = unquote(events_module)
 
         case events_module do
           nil -> EspEx.EventTransformer.to_event(__MODULE__, raw_event)

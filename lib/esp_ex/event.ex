@@ -47,7 +47,7 @@ defmodule EspEx.Event do
   end
 
   defp random_uuid do
-    Ecto.UUID.generate()
+    UUID.uuid4()
   end
 
   defp naive_datetime_now do

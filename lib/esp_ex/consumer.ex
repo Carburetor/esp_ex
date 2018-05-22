@@ -1,6 +1,8 @@
 defmodule EspEx.Consumer do
   @moduledoc """
-  Listen to a stream allowing to handle any incoming events
+  Listen to a stream allowing to handle any incoming events. You might want to
+  use `EspEx.Consumer.Postgres` specialization which internally uses
+  `EspEx.EventBus.Postgres.listen`
   """
 
   defstruct listener: nil,
@@ -8,6 +10,10 @@ defmodule EspEx.Consumer do
             global_position: 0,
             events: [],
             meta: nil
+
+  def identifier(consumer_module) when is_atom(consumer_module) do
+    to_string(consumer_module)
+  end
 
   @doc """
   - `:event_bus` **required** an `EspEx.EventBus` implementation
@@ -25,19 +31,19 @@ defmodule EspEx.Consumer do
     event_bus = Keyword.get(opts, :event_bus)
     event_transformer = Keyword.get(opts, :event_transformer)
     stream_name = Keyword.get(opts, :stream_name)
-    identifier = Keyword.get(opts, :identifier, to_string(__MODULE__))
+    identifier = Keyword.get(opts, :identifier, nil)
     handler = Keyword.get(opts, :handler, nil)
     listen_opts = Keyword.get(opts, :listen_opts, [])
 
-    quote do
+    quote location: :keep do
       use GenServer
 
       @event_bus unquote(event_bus)
       @event_transformer unquote(event_transformer)
       @stream_name unquote(stream_name)
-      @identifier unquote(identifier)
       @listen_opts unquote(listen_opts)
       @consumer unquote(__MODULE__)
+      @identifier unquote(identifier) || @consumer.identifier(__MODULE__)
 
       defp handler do
         case unquote(handler) do
@@ -66,7 +72,7 @@ defmodule EspEx.Consumer do
           ) do
         debug(fn -> "Notification for stream: #{channel}" end)
 
-        request_events()
+        GenServer.cast(self(), {:request_events})
 
         {:noreply, consumer}
       end
@@ -75,7 +81,7 @@ defmodule EspEx.Consumer do
       def handle_info({:reminder}, %@consumer{} = consumer) do
         debug(fn -> "Reminder" end)
 
-        request_events()
+        GenServer.cast(self(), {:request_events})
 
         {:noreply, consumer}
       end
@@ -115,7 +121,7 @@ defmodule EspEx.Consumer do
       defp fetch_events(consumer), do: {:noreply, consumer}
 
       defp consume_event(%{events: []} = consumer) do
-        request_events()
+        GenServer.cast(self(), {:request_events})
         {:noreply, consumer}
       end
 
@@ -167,10 +173,6 @@ defmodule EspEx.Consumer do
 
       defp process_next_event do
         GenServer.cast(self(), {:process_event})
-      end
-
-      defp request_events do
-        GenServer.cast(self(), {:request_events})
       end
 
       defp local_or_global_position(pos, global_pos) do

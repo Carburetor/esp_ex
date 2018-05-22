@@ -6,13 +6,13 @@ defmodule EspEx.EventBus.PostgresTest do
 
   @stream_name %StreamName{category: "campaign", identifier: "123", types: []}
   @raw_event %RawEvent{
-    id: Ecto.UUID.generate(),
+    id: UUID.uuid4(),
     stream_name: @stream_name,
     type: "Updated",
     data: %{name: "Unnamed"}
   }
   @raw_event2 %RawEvent{
-    id: Ecto.UUID.generate(),
+    id: UUID.uuid4(),
     stream_name: @stream_name,
     type: "Updated",
     data: %{name: "Jerry"}

@@ -75,7 +75,7 @@ defmodule EspEx.EventBus do
   end
 
   defmacro __using__(_) do
-    quote do
+    quote location: :keep do
       @behaviour unquote(__MODULE__)
 
       @impl unquote(__MODULE__)

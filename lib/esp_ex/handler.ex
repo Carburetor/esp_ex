@@ -12,7 +12,7 @@ defmodule EspEx.Handler do
             ) :: no_return()
 
   defmacro __using__(_) do
-    quote do
+    quote location: :keep do
       @behaviour unquote(__MODULE__)
       @before_compile EspEx.Handler.Unhandled
     end

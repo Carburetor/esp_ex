@@ -2,7 +2,7 @@ defmodule EspEx.Projection.Unhandled do
   @moduledoc false
 
   defmacro __before_compile__(_env) do
-    quote do
+    quote location: :keep do
       @impl EspEx.Projection
       def apply(entity, event) do
         EspEx.Logger.warn(fn ->

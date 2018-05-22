@@ -1,4 +1,4 @@
-defmodule EspEx.ConsumerTest do
+defmodule EspEx.Consumer.PostgresTest do
   use ExUnit.Case
 
   alias EspEx.EventBus.Postgres, as: EventBus
@@ -23,8 +23,7 @@ defmodule EspEx.ConsumerTest do
   end
 
   defmodule CampaignConsumer do
-    use EspEx.Consumer,
-      event_bus: EventBus,
+    use EspEx.Consumer.Postgres,
       event_transformer: Events,
       stream_name: StreamName.new("campaign")
 
@@ -44,7 +43,7 @@ defmodule EspEx.ConsumerTest do
   @stream_name StreamName.new("campaign", "123")
   @raw_event_base %EspEx.RawEvent{stream_name: @stream_name}
 
-  describe "Consumer" do
+  describe "Consumer.Postgres" do
     test "handles renamed events" do
       {:ok, pid} = GenServer.start_link(CampaignConsumer, self())
 

@@ -28,7 +28,7 @@ defmodule EspEx.Store do
     projection = Keyword.get(opts, :projection)
     stream_name = Keyword.get(opts, :stream_name)
 
-    quote do
+    quote location: :keep do
       @behaviour unquote(__MODULE__)
 
       @impl unquote(__MODULE__)
