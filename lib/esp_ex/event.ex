@@ -4,6 +4,7 @@ defmodule EspEx.Event do
   """
 
   alias EspEx.RawEvent
+  alias EspEx.StreamName
 
   def to_raw_event(event) when is_map(event) do
     to_raw_event(event, %RawEvent{})
@@ -13,8 +14,7 @@ defmodule EspEx.Event do
           event :: struct(),
           raw_event_base :: EspEx.RawEvent.t()
         ) :: EspEx.RawEvent.t()
-  def to_raw_event(event, %RawEvent{} = raw_event_base)
-      when is_map(event) and is_map(raw_event_base) do
+  def to_raw_event(event, %RawEvent{} = raw_event_base) when is_map(event) do
     id = raw_event_base.id || random_uuid()
     time = raw_event_base.time || naive_datetime_now()
     stream_name = raw_event_base.stream_name
@@ -33,6 +33,16 @@ defmodule EspEx.Event do
     end)
 
     raw_event
+  end
+
+  @spec to_raw_event(
+          event :: struct(),
+          stream_name :: EspEx.StreamName.t()
+        ) :: EspEx.RawEvent.t()
+  def to_raw_event(event, %StreamName{} = stream_name) when is_map(event) do
+    raw_event_base = %RawEvent{stream_name: stream_name}
+
+    to_raw_event(event, raw_event_base)
   end
 
   @spec type(text :: String.t()) :: String.t()

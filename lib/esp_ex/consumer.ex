@@ -5,14 +5,98 @@ defmodule EspEx.Consumer do
   `EspEx.EventBus.Postgres.listen`
   """
 
+  alias EspEx.Logger
+
   defstruct listener: nil,
             position: 0,
             global_position: 0,
             events: [],
             meta: nil
 
-  def identifier(consumer_module) when is_atom(consumer_module) do
-    to_string(consumer_module)
+  @spec identifier(consumer :: module()) :: String.t()
+  @doc """
+  Determines an identifier for the given module as a string
+  """
+  def identifier(consumer) when is_atom(consumer) do
+    to_string(consumer)
+  end
+
+  @doc false
+  defmacro local_or_global_position(stream_name, state) do
+    quote location: :keep,
+          bind_quoted: [stream_name: stream_name, state: state] do
+      %{position: pos, global_position: global_pos} = state
+
+      case EspEx.StreamName.category?(stream_name) do
+        true -> {:global, global_pos}
+        _ -> {:local, pos}
+      end
+    end
+  end
+
+  @doc false
+  defmacro read_batch(event_bus, identifier, stream_name, state) do
+    quote location: :keep,
+          bind_quoted: [
+            identifier: identifier,
+            stream_name: stream_name,
+            state: state,
+            module: __MODULE__
+          ] do
+      {_, position} = module.local_or_global_position(stream_name, state)
+
+      module.debug_position(identifier, stream_name, state)
+
+      event_bus.read_batch(stream_name, position)
+    end
+  end
+
+  @doc false
+  defmacro debug_position(identifier, stream_name, state) do
+    quote location: :keep,
+          bind_quoted: [
+            identifier: identifier,
+            stream_name: stream_name,
+            state: state,
+            module: __MODULE__
+          ] do
+      {pos_type, pos} = module.local_or_global_position(stream_name, state)
+
+      module.debug(identifier, fn ->
+        "Requesting events from #{pos_type} #{pos}"
+      end)
+    end
+  end
+
+  @doc false
+  defmacro debug(identifier, msg_or_fn) when is_function(msg_or_fn) do
+    quote location: :keep,
+          bind_quoted: [identifier: identifier, msg_or_fn: msg_or_fn] do
+      Logger.debug(fn -> "[##{identifier}] " <> msg.() end)
+    end
+  end
+
+  @doc false
+  defmacro debug(identifier, msg_or_fn) when is_bitstring(msg_or_fn) do
+    quote location: :keep,
+          bind_quoted: [identifier: identifier, msg_or_fn: msg_or_fn] do
+      Logger.debug(fn -> "[##{identifier}] " <> msg end)
+    end
+  end
+
+  @doc false
+  defmacro handle_event(handler, event_transformer, raw_event, meta) do
+    quote location: :keep,
+          bind_quoted: [
+            handler: handler,
+            event_transformer: event_transformer,
+            raw_event: raw_event,
+            meta: meta
+          ] do
+      event = event_transformer.to_event(raw_event)
+
+      handler.handle(event, raw_event, meta)
+    end
   end
 
   @doc """
@@ -31,163 +115,120 @@ defmodule EspEx.Consumer do
     event_bus = Keyword.get(opts, :event_bus)
     event_transformer = Keyword.get(opts, :event_transformer)
     stream_name = Keyword.get(opts, :stream_name)
-    identifier = Keyword.get(opts, :identifier, nil)
-    handler = Keyword.get(opts, :handler, nil)
+    default_identifier = __MODULE__.identifier(__CALLER__.module)
+    identifier = Keyword.get(opts, :identifier, default_identifier)
+    handler = Keyword.get(opts, :handler, __CALLER__.module)
     listen_opts = Keyword.get(opts, :listen_opts, [])
+    consumer = __MODULE__
 
-    quote location: :keep do
+    quote location: :keep,
+          bind_quoted: [
+            :event_bus,
+            :event_transformer,
+            :stream_name,
+            :identifier,
+            :handler,
+            :listen_opts,
+            :consumer
+          ] do
       use GenServer
-
-      @event_bus unquote(event_bus)
-      @event_transformer unquote(event_transformer)
-      @stream_name unquote(stream_name)
-      @listen_opts unquote(listen_opts)
-      @consumer unquote(__MODULE__)
-      @identifier unquote(identifier) || @consumer.identifier(__MODULE__)
-
-      defp handler do
-        case unquote(handler) do
-          nil -> __MODULE__
-          _ -> unquote(handler)
-        end
-      end
 
       @impl GenServer
       def init(meta) do
-        {:ok, listener} = @event_bus.listen(@stream_name, @listen_opts)
+        {:ok, listener} = event_bus.listen(stream_name, listen_opts)
 
-        consumer =
-          %@consumer{meta: meta}
-          |> Map.put(:listener, listener)
-
+        state = %consumer{meta: meta, listener: listener}
         GenServer.cast(self(), {:request_events})
 
-        {:ok, consumer}
+        {:ok, state}
       end
 
       @impl GenServer
-      def handle_info(
-            {:notification, _, _, channel, _payload},
-            %@consumer{} = consumer
-          ) do
-        debug(fn -> "Notification for stream: #{channel}" end)
-
-        GenServer.cast(self(), {:request_events})
-
-        {:noreply, consumer}
+      def handle_cast({:request_events}, %consumer{} = state) do
+        fetch_events(state)
       end
 
       @impl GenServer
-      def handle_info({:reminder}, %@consumer{} = consumer) do
-        debug(fn -> "Reminder" end)
-
-        GenServer.cast(self(), {:request_events})
-
-        {:noreply, consumer}
+      def handle_cast({:process_event}, %consumer{} = state) do
+        consume_event(state)
       end
 
       @impl GenServer
-      def handle_cast({:request_events}, %@consumer{} = consumer) do
-        fetch_events(consumer)
-      end
+      def terminate(:normal, state),
+        do: event_bus.unlisten(state.listener, listen_opts)
 
-      @impl GenServer
-      def handle_cast({:process_event}, %@consumer{} = consumer) do
-        consume_event(consumer)
-      end
+      def terminate(:shutdown, state),
+        do: event_bus.unlisten(state.listener, listen_opts)
 
-      @impl GenServer
-      def terminate(:normal, consumer), do: unlisten(consumer)
-      def terminate(:shutdown, consumer), do: unlisten(consumer)
-      def terminate({:shutdown, _}, consumer), do: unlisten(consumer)
+      def terminate({:shutdown, _}, state),
+        do: event_bus.unlisten(state.listener, listen_opts)
+
       defoverridable terminate: 2
 
-      defp fetch_events(%{events: []} = consumer) do
-        events = read_batch(consumer)
+      defp fetch_events(%{events: []} = state) do
+        events = read_batch(state)
 
-        consumer =
+        state =
           case events do
             [] ->
-              consumer
+              state
 
             _ ->
-              process_next_event()
-              Map.put(consumer, :events, events)
+              GenServer.cast(self(), {:process_event})
+              Map.put(state, :events, events)
           end
 
-        {:noreply, consumer}
+        {:noreply, state}
       end
 
-      defp fetch_events(consumer), do: {:noreply, consumer}
+      defp fetch_events(state), do: {:noreply, state}
 
-      defp consume_event(%{events: []} = consumer) do
+      defp consume_event(%{events: []} = state) do
         GenServer.cast(self(), {:request_events})
-        {:noreply, consumer}
+        {:noreply, state}
       end
 
       defp consume_event(
              %{
                events: [raw_event | events],
                meta: meta
-             } = consumer
+             } = state
            ) do
-        debug(fn ->
-          "Consuming event #{raw_event.type}/#{raw_event.position}"
+        consumer.debug(fn ->
+          "[##{identifier}] Consuming event " <>
+            "#{raw_event.type}/#{raw_event.position}"
         end)
 
-        handle_event(raw_event, meta)
+        consumer.handle_event(handler, event_transformer, raw_event, meta)
         position = EspEx.RawEvent.next_position(raw_event.position)
         global_position = raw_event.global_position
         global_position = EspEx.RawEvent.next_global_position(global_position)
 
-        consumer =
-          consumer
+        state =
+          state
           |> Map.put(:events, events)
           |> Map.put(:position, position)
           |> Map.put(:global_position, global_position)
 
-        process_next_event()
+        GenServer.cast(self(), {:process_event})
 
-        {:noreply, consumer}
-      end
-
-      defp handle_event(raw_event, meta) do
-        event = @event_transformer.to_event(raw_event)
-
-        handler().handle(event, raw_event, meta)
+        {:noreply, state}
       end
 
       defp read_batch(%{position: pos, global_position: global_pos}) do
-        {pos_type, position} = local_or_global_position(pos, global_pos)
+        {pos_type, position} =
+          consumer.local_or_global_position(
+            stream_name,
+            pos,
+            global_pos
+          )
 
-        debug(fn ->
-          "Requesting events P#{pos} G#{global_pos}, used #{pos_type}"
+        Logger.debug(fn ->
+          "[##{identifier}] Requesting events P#{pos} G#{global_pos}, " <>
+            "used #{pos_type}"
         end)
 
-        @event_bus.read_batch(@stream_name, position)
-      end
-
-      defp unlisten(%{listener: listener}) do
-        @event_bus.unlisten(listener, @listen_opts)
-      end
-
-      defp process_next_event do
-        GenServer.cast(self(), {:process_event})
-      end
-
-      defp local_or_global_position(pos, global_pos) do
-        case EspEx.StreamName.category?(@stream_name) do
-          true -> {:global, global_pos}
-          _ -> {:local, pos}
-        end
-      end
-
-      defp debug(msg) when is_function(msg) do
-        EspEx.Logger.debug(fn -> "[##{@identifier}] " <> msg.() end)
-      end
-
-      defp debug(msg) do
-        EspEx.Logger.debug(fn -> "[##{@identifier}] " <> msg end)
+        event_bus.read_batch(stream_name, position)
       end
     end
   end

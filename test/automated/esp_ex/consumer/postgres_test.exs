@@ -7,7 +7,7 @@ defmodule EspEx.Consumer.PostgresTest do
 
   defp truncate_messages do
     EspEx.EventBus.Postgres.Repo
-    |> Ecto.Adapters.SQL.query!("TRUNCATE TABLE messages", [])
+    |> Ecto.Adapters.SQL.query!("TRUNCATE TABLE messages RESTART IDENTITY", [])
   end
 
   defmodule Events do

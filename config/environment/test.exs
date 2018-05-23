@@ -6,7 +6,6 @@ config :logger,
   compile_time_purge_level: :debug
 
 config :esp_ex, EspEx.EventBus.Postgres.Repo,
-  adapter: Ecto.Adapters.Postgres,
   database: System.get_env("ESPEX_DATABASE") || "esp_ex_test",
   username: System.get_env("ESPEX_USER") || "postgres",
   password: System.get_env("ESPEX_PASSWORD") || "postgres",
