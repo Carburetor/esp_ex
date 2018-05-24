@@ -1,10 +1,10 @@
-defmodule EspEx.EventBus.Static do
+defmodule EspEx.MessageStore.Static do
   @moduledoc false
 
-  # You should never use this EventBus since it doesn't reflect correct
+  # You should never use this MessageStore since it doesn't reflect correct
   # behaviour for an event store (it's static). It's used only in test suite
 
-  use EspEx.EventBus
+  use EspEx.MessageStore
 
   alias EspEx.RawEvent
   alias EspEx.StreamName
@@ -37,16 +37,16 @@ defmodule EspEx.EventBus.Static do
     }
   ]
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   def write!(_, _ \\ nil), do: 3
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   def read_last(@stream_name), do: List.last(@messages)
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   def read_last(_), do: nil
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   def read_batch(@stream_name, position, batch_size) do
     @messages
     |> Enum.drop(position)
@@ -57,15 +57,15 @@ defmodule EspEx.EventBus.Static do
   def read_batch(stream_name), do: read_batch(stream_name, 0, 10)
   def read_batch(stream_name, pos), do: read_batch(stream_name, pos, 10)
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   def read_version(@stream_name), do: List.last(@messages).position
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   def read_version(_), do: nil
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   def listen(_, _, _ \\ []), do: {:ok, nil}
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   def unlisten(_, _ \\ []), do: nil
 end

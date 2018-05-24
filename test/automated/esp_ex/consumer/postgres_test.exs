@@ -1,12 +1,12 @@
 defmodule EspEx.Consumer.PostgresTest do
   use ExUnit.Case
 
-  alias EspEx.EventBus.Postgres, as: EventBus
+  alias EspEx.MessageStore.Postgres, as: MessageStore
   alias EspEx.StreamName
   alias EspEx.Event
 
   defp truncate_messages do
-    EspEx.EventBus.Postgres.Repo
+    EspEx.MessageStore.Postgres.Repo
     |> Ecto.Adapters.SQL.query!("TRUNCATE TABLE messages RESTART IDENTITY", [])
   end
 
@@ -49,7 +49,7 @@ defmodule EspEx.Consumer.PostgresTest do
 
       %Events.Renamed{}
       |> Event.to_raw_event(@raw_event_base)
-      |> EventBus.write!()
+      |> MessageStore.write!()
 
       assert_receive {:renamed}, 500
 
@@ -62,7 +62,7 @@ defmodule EspEx.Consumer.PostgresTest do
 
       %Events.Spammed{}
       |> Event.to_raw_event(@raw_event_base)
-      |> EventBus.write!()
+      |> MessageStore.write!()
 
       assert_receive {:spammed}, 500
 

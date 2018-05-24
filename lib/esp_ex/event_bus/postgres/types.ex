@@ -1,5 +1,5 @@
 Postgrex.Types.define(
-  EspEx.EventBus.Postgres.Types,
+  EspEx.MessageStore.Postgres.Types,
   [] ++ Ecto.Adapters.Postgres.extensions(),
   json: Jason
 )

@@ -2,7 +2,7 @@ defmodule EspEx.Consumer do
   @moduledoc """
   Listen to a stream allowing to handle any incoming events. You might want to
   use `EspEx.Consumer.Postgres` specialization which internally uses
-  `EspEx.EventBus.Postgres.listen`
+  `EspEx.MessageStore.Postgres.listen`
   """
 
   alias EspEx.Consumer.Config
@@ -34,12 +34,12 @@ defmodule EspEx.Consumer do
         ) :: {:noreply, EspEx.Consumer.State.t()}
   def fetch_events(%Config{} = config, pid, %{events: []} = state) do
     %{
-      event_bus: event_bus,
+      message_store: message_store,
       identifier: identifier,
       stream_name: stream_name
     } = config
 
-    events = read_batch(event_bus, identifier, stream_name, state)
+    events = read_batch(message_store, identifier, stream_name, state)
     state = request_event_processing(pid, events, state)
 
     {:noreply, state}
@@ -94,15 +94,15 @@ defmodule EspEx.Consumer do
   Start listening to incoming events
   """
   @spec listen(config :: EspEx.Consumer.Config.t()) ::
-          {:ok, EspEx.EventBus.listen_ref()} | {:error, any}
+          {:ok, EspEx.MessageStore.listen_ref()} | {:error, any}
   def listen(%Config{} = config) do
     %{
-      event_bus: event_bus,
+      message_store: message_store,
       stream_name: stream_name,
       listen_opts: listen_opts
     } = config
 
-    event_bus.listen(stream_name, listen_opts)
+    message_store.listen(stream_name, listen_opts)
   end
 
   @doc """
@@ -111,14 +111,14 @@ defmodule EspEx.Consumer do
   @spec unlisten(
           config :: EspEx.Consumer.Config.t(),
           state :: EspEx.Consumer.State.t()
-        ) :: {:ok, EspEx.EventBus.listen_ref()} | {:error, any}
+        ) :: {:ok, EspEx.MessageStore.listen_ref()} | {:error, any}
   def unlisten(%Config{} = config, %State{} = state) do
     %{
-      event_bus: event_bus,
+      message_store: message_store,
       listen_opts: listen_opts
     } = config
 
-    event_bus.unlisten(state.listener, listen_opts)
+    message_store.unlisten(state.listener, listen_opts)
   end
 
   @doc """
@@ -153,12 +153,12 @@ defmodule EspEx.Consumer do
     end
   end
 
-  defp read_batch(event_bus, identifier, stream_name, state) do
+  defp read_batch(message_store, identifier, stream_name, state) do
     {_, position} = local_or_global_position(stream_name, state)
 
     debug_position(identifier, stream_name, state)
 
-    event_bus.read_batch(stream_name, position)
+    message_store.read_batch(stream_name, position)
   end
 
   defp debug_position(identifier, stream_name, state) do

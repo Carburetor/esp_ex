@@ -4,15 +4,15 @@ defmodule EspEx.Consumer.Config do
   """
 
   @type t :: %EspEx.Consumer.Config{
-          event_bus: module(),
+          message_store: module(),
           event_transformer: module(),
           stream_name: EspEx.StreamName.t(),
           identifier: String.t(),
           handler: module(),
-          listen_opts: EspEx.EventBus.listen_opts()
+          listen_opts: EspEx.MessageStore.listen_opts()
         }
   defstruct [
-    :event_bus,
+    :message_store,
     :event_transformer,
     :stream_name,
     :identifier,
@@ -21,7 +21,7 @@ defmodule EspEx.Consumer.Config do
   ]
 
   @doc """
-  - `:event_bus` **required** an `EspEx.EventBus` implementation
+  - `:message_store` **required** an `EspEx.MessageStore` implementation
   - `:event_transformer` **required** an `EspEx.EventTransformer`
     implementation
   - `:stream_name` **required** a `EspEx.StreamName`
@@ -30,7 +30,7 @@ defmodule EspEx.Consumer.Config do
   """
   def new(opts) when is_list(opts) do
     %__MODULE__{
-      event_bus: Keyword.get(opts, :event_bus),
+      message_store: Keyword.get(opts, :message_store),
       event_transformer: Keyword.get(opts, :event_transformer),
       stream_name: Keyword.get(opts, :stream_name),
       identifier: Keyword.get(opts, :identifier),

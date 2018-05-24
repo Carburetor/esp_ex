@@ -16,7 +16,7 @@ defmodule EspEx.Consumer.Postgres do
     Defaults to the current module name
   - `:handler` (optional) a `EspEx.Handler` implementation. Defaults to using
     the current module
-  - `:listen_opts` (optional) options that will be provided to the `event_bus`
+  - `:listen_opts` (optional) options that will be provided to the `message_store`
     that listen call as last argument
   """
   defmacro __using__(opts \\ []) do
@@ -25,7 +25,7 @@ defmodule EspEx.Consumer.Postgres do
 
     opts =
       opts
-      |> Keyword.put(:event_bus, EspEx.EventBus.Postgres)
+      |> Keyword.put(:message_store, EspEx.MessageStore.Postgres)
       |> Keyword.put_new(:identifier, identifier)
       |> Keyword.put_new(:handler, __CALLER__.module)
 

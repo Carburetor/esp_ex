@@ -1,4 +1,4 @@
-defmodule EspEx.EventBus do
+defmodule EspEx.MessageStore do
   @moduledoc """
   This module provides an interface for specialized event buses. In addition,
   it provides a utility macro that auto-implements write_initial! for you based
@@ -11,14 +11,14 @@ defmodule EspEx.EventBus do
   @type batch_size :: non_neg_integer
   @type version :: non_neg_integer
 
-  alias EspEx.EventBus.Stream.Position
+  alias EspEx.MessageStore.Stream.Position
 
-  # Raises `EspEx.EventBus.ExpectedVersionError` in case of version violation
+  # Raises `EspEx.MessageStore.ExpectedVersionError` in case of version violation
   @callback write!(
               raw_event :: EspEx.RawEvent.t(),
               expected_version :: expected_version()
             ) :: version()
-  # Raises `EspEx.EventBus.ExpectedVersionError` in case of version violation
+  # Raises `EspEx.MessageStore.ExpectedVersionError` in case of version violation
   @callback write_initial!(raw_event :: EspEx.RawEvent.t()) :: no_return()
   @callback read_last(stream_name :: EspEx.StreamName.t()) ::
               EspEx.RawEvent.t() | nil
@@ -50,28 +50,28 @@ defmodule EspEx.EventBus do
   defguard is_batch_size(size) when is_integer(size) and size >= 0
 
   @spec write_initial!(
-          event_bus :: module,
+          message_store :: module,
           raw_event :: EspEx.RawEvent.t()
         ) :: no_return()
-  def write_initial!(event_bus, raw_event) do
-    event_bus.write!(raw_event, :no_stream)
+  def write_initial!(message_store, raw_event) do
+    message_store.write!(raw_event, :no_stream)
   end
 
   @spec stream(
-          event_bus :: module,
+          message_store :: module,
           stream_name :: EspEx.StreamName.t(),
           position :: version(),
           batch_size :: batch_size()
         ) :: Enumerable.t()
   def stream(
-        event_bus,
+        message_store,
         %EspEx.StreamName{} = stream_name,
         position \\ 0,
         batch_size \\ 10
       )
       when is_version(position) and is_batch_size(batch_size) do
-    stream_pos = Position.new(event_bus, stream_name, position, batch_size)
-    EspEx.EventBus.Stream.from_position(stream_pos)
+    stream_pos = Position.new(message_store, stream_name, position, batch_size)
+    EspEx.MessageStore.Stream.from_position(stream_pos)
   end
 
   defmacro __using__(_) do
@@ -80,12 +80,12 @@ defmodule EspEx.EventBus do
 
       @impl unquote(__MODULE__)
       def write_initial!(raw_event) do
-        EspEx.EventBus.write_initial!(__MODULE__, raw_event)
+        EspEx.MessageStore.write_initial!(__MODULE__, raw_event)
       end
 
       @impl unquote(__MODULE__)
       def stream(stream_name, position \\ 0, batch_size \\ 10) do
-        EspEx.EventBus.stream(__MODULE__, stream_name, position, batch_size)
+        EspEx.MessageStore.stream(__MODULE__, stream_name, position, batch_size)
       end
 
       defoverridable write_initial!: 1, stream: 3

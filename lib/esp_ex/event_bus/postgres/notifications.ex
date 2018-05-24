@@ -1,4 +1,4 @@
-defmodule EspEx.EventBus.Postgres.Notifications do
+defmodule EspEx.MessageStore.Postgres.Notifications do
   @moduledoc false
 
   alias EspEx.StreamName

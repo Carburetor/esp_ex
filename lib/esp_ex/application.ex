@@ -2,7 +2,7 @@ defmodule EspEx.Application do
   use Application
 
   def start(_type, _args) do
-    repo = EspEx.EventBus.Postgres.Repo
+    repo = EspEx.MessageStore.Postgres.Repo
 
     children = [
       repo,

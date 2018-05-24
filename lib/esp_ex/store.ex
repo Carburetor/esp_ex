@@ -9,10 +9,10 @@ defmodule EspEx.Store do
   @callback fetch(
               identifier :: EspEx.StreamName.id(),
               opts :: fetch_opts
-            ) :: {struct(), EspEx.EventBus.version() | nil}
+            ) :: {struct(), EspEx.MessageStore.version() | nil}
 
   @doc """
-  - `:event_bus` **required** `EspEx.EventBus` implementation, used to read
+  - `:message_store` **required** `EspEx.MessageStore` implementation, used to read
     events
   - `:entity_builder` **required** module implementing `EspEx.Entity` behaviour
   - `:event_transformer` **required** implementation of
@@ -22,7 +22,7 @@ defmodule EspEx.Store do
     `EspEx.StreamName`
   """
   defmacro __using__(opts \\ []) do
-    event_bus = Keyword.get(opts, :event_bus)
+    message_store = Keyword.get(opts, :message_store)
     entity_builder = Keyword.get(opts, :entity_builder)
     event_transformer = Keyword.get(opts, :event_transformer)
     projection = Keyword.get(opts, :projection)
@@ -42,7 +42,7 @@ defmodule EspEx.Store do
           end
 
         unquote(__MODULE__).fetch(
-          unquote(event_bus),
+          unquote(message_store),
           unquote(entity_builder),
           unquote(event_transformer),
           unquote(projection),
@@ -54,27 +54,27 @@ defmodule EspEx.Store do
   end
 
   @spec fetch(
-          event_bus :: module,
+          message_store :: module,
           entity_builder :: module,
           event_transformer :: module,
           projection :: module,
           stream_name :: EspEx.StreamName.t(),
           opts :: fetch_opts()
-        ) :: {struct(), EspEx.EventBus.version() | nil}
+        ) :: {struct(), EspEx.MessageStore.version() | nil}
   def fetch(
-        event_bus,
+        message_store,
         entity_builder,
         event_transformer,
         projection,
         %EspEx.StreamName{} = stream_name,
         opts \\ []
       )
-      when is_atom(event_bus) and is_atom(entity_builder) and
+      when is_atom(message_store) and is_atom(entity_builder) and
              is_atom(event_transformer) and is_atom(projection) do
     new_ent = entity_builder.new()
     batch_size = Keyword.get(opts, :batch_size, 10)
 
-    event_bus.stream(stream_name, 0, batch_size)
+    message_store.stream(stream_name, 0, batch_size)
     |> Stream.map(event_and_position(event_transformer))
     |> Enum.reduce({new_ent, nil}, fn {event, position}, {entity, _} ->
       Logger.debug(fn ->

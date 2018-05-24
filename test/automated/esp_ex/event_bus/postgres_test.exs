@@ -1,6 +1,6 @@
-defmodule EspEx.EventBus.PostgresTest do
+defmodule EspEx.MessageStore.PostgresTest do
   use ExUnit.Case, async: true
-  alias EspEx.EventBus.Postgres
+  alias EspEx.MessageStore.Postgres
   alias EspEx.StreamName
   alias EspEx.RawEvent
 
@@ -19,7 +19,7 @@ defmodule EspEx.EventBus.PostgresTest do
   }
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(EspEx.EventBus.Postgres.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(EspEx.MessageStore.Postgres.Repo)
   end
 
   describe "Postgres.write!" do

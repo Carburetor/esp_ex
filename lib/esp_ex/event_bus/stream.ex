@@ -1,7 +1,7 @@
-defmodule EspEx.EventBus.Stream do
+defmodule EspEx.MessageStore.Stream do
   @moduledoc false
 
-  alias EspEx.EventBus.Stream.Position
+  alias EspEx.MessageStore.Stream.Position
 
   def from_position(%Position{} = stream_position) do
     Stream.resource(fn -> stream_position end, &next/1, &finish/1)

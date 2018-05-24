@@ -2,7 +2,7 @@ defmodule EspEx.Consumer.State do
   @moduledoc false
 
   @type t :: %EspEx.Consumer.State{
-          listener: {:ok, EspEx.EventBus.listen_ref()} | {:error, any},
+          listener: {:ok, EspEx.MessageStore.listen_ref()} | {:error, any},
           position: non_neg_integer(),
           global_position: non_neg_integer(),
           events: list(EspEx.RawEvent.t()),

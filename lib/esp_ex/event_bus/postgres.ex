@@ -1,6 +1,6 @@
-defmodule EspEx.EventBus.Postgres do
+defmodule EspEx.MessageStore.Postgres do
   @moduledoc """
-  This is the real implementation of EventBus. It will execute the needed
+  This is the real implementation of MessageStore. It will execute the needed
   queries on Postgres through Postgrex by calling the functions provided in
   [ESP](https://github.com/Carburetor/ESP/tree/master/app/config/functions/stream). You should be able to infer what to write, it's just passing the
   required arguments to the SQL functions and converting any returned value.
@@ -8,9 +8,9 @@ defmodule EspEx.EventBus.Postgres do
   make sure to convert it to string.
   """
 
-  use EspEx.EventBus
+  use EspEx.MessageStore
 
-  import EspEx.EventBus,
+  import EspEx.MessageStore,
     only: [
       is_version: 1,
       is_expected_version: 1,
@@ -43,7 +43,7 @@ defmodule EspEx.EventBus.Postgres do
   @version_sql "select * from stream_version(_stream_name := $1)"
   @pg_notify_sql "select pg_notify($1, $2)"
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   @doc """
   Write has an optional expected_version argument. This argument could be one of:
   - nil: no version expected
@@ -64,7 +64,7 @@ defmodule EspEx.EventBus.Postgres do
     error in Postgrex.Error -> as_expected_version_error!(error)
   end
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   @doc """
   Retrieve's the last stream by the stream_name (based on greatest position).
   """
@@ -74,7 +74,7 @@ defmodule EspEx.EventBus.Postgres do
     |> List.last()
   end
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   @doc """
   Retrieve steams by the stream_name, in batches of 10 by default.
   """
@@ -84,7 +84,7 @@ defmodule EspEx.EventBus.Postgres do
     |> rows_to_raw_events
   end
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   @doc """
   Retrieves the last message position, or nil if none are present
   """
@@ -93,7 +93,7 @@ defmodule EspEx.EventBus.Postgres do
     |> rows_to_single_result
   end
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   @doc """
   Receives notifications as GenServer casts. Two types of notifications are
   received:
@@ -104,15 +104,15 @@ defmodule EspEx.EventBus.Postgres do
   - `{:reminder}` which is received every X seconds
   """
   def listen(%StreamName{} = stream_name, opts \\ []) do
-    EspEx.EventBus.Postgres.Notifications.listen(stream_name, opts)
+    EspEx.MessageStore.Postgres.Notifications.listen(stream_name, opts)
   end
 
-  @impl EspEx.EventBus
+  @impl EspEx.MessageStore
   @doc """
   Stops notifications
   """
   def unlisten(ref, opts \\ []) do
-    EspEx.EventBus.Postgres.Notifications.unlisten(ref, opts)
+    EspEx.MessageStore.Postgres.Notifications.unlisten(ref, opts)
   end
 
   @doc """
@@ -129,7 +129,7 @@ defmodule EspEx.EventBus.Postgres do
   defp to_number_version(expected_version), do: expected_version
 
   defp query(raw_sql, parameters) do
-    EspEx.EventBus.Postgres.Repo
+    EspEx.MessageStore.Postgres.Repo
     |> Ecto.Adapters.SQL.query!(raw_sql, parameters)
   end
 
@@ -182,7 +182,7 @@ defmodule EspEx.EventBus.Postgres do
     starts_with = String.starts_with?(message, @wrong_version)
 
     case starts_with do
-      true -> raise EspEx.EventBus.ExpectedVersionError, message: message
+      true -> raise EspEx.MessageStore.ExpectedVersionError, message: message
       _ -> raise error
     end
   end

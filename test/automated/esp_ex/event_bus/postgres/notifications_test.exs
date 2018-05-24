@@ -1,8 +1,8 @@
-defmodule EspEx.EventBus.Postgres.NotificationsTest do
+defmodule EspEx.MessageStore.Postgres.NotificationsTest do
   use ExUnit.Case
 
   alias EspEx.StreamName
-  alias EspEx.EventBus.Postgres
+  alias EspEx.MessageStore.Postgres
 
   @stream_name %StreamName{category: "campaign", identifier: "123", types: []}
   @text_stream to_string(@stream_name)

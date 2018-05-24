@@ -1,7 +1,7 @@
 defmodule EspEx.StoreTest do
   use ExUnit.Case, async: true
 
-  alias EspEx.EventBus.Static, as: EventBus
+  alias EspEx.MessageStore.Static, as: MessageStore
   alias EspEx.StreamName
 
   defmodule Person do
@@ -34,7 +34,7 @@ defmodule EspEx.StoreTest do
 
   defmodule Store do
     use EspEx.Store,
-      event_bus: EventBus,
+      message_store: MessageStore,
       entity_builder: Person,
       event_transformer: Events,
       projection: Projection,

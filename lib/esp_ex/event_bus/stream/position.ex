@@ -1,4 +1,4 @@
-defmodule EspEx.EventBus.Stream.Position do
+defmodule EspEx.MessageStore.Stream.Position do
   @moduledoc false
   defstruct [:reader, :stream_name, :position, :batch_size]
 
