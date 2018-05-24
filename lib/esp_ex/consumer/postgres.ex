@@ -76,11 +76,11 @@ defmodule EspEx.Consumer.Postgres do
         {:noreply, state}
       end
 
-      # @impl GenServer
-      # def terminate(:normal, state), do: Consumer.unlisten(@conf, state)
-      # def terminate(:shutdown, state), do: Consumer.unlisten(@conf, state)
-      # def terminate({:shutdown, _}, state), do: Consumer.unlisten(@conf, state)
-      # defoverridable terminate: 2
+      @impl GenServer
+      def terminate(:normal, state), do: Consumer.unlisten(@conf, state)
+      def terminate(:shutdown, state), do: Consumer.unlisten(@conf, state)
+      def terminate({:shutdown, _}, state), do: Consumer.unlisten(@conf, state)
+      defoverridable terminate: 2
     end
   end
 end
