@@ -6,6 +6,7 @@ defmodule EspEx.Consumer do
   """
 
   alias EspEx.Logger
+  alias EspEx.Consumer.Reader
 
   defstruct listener: nil,
             position: 0,
@@ -19,84 +20,6 @@ defmodule EspEx.Consumer do
   """
   def identifier(consumer) when is_atom(consumer) do
     to_string(consumer)
-  end
-
-  @doc false
-  defmacro local_or_global_position(stream_name, state) do
-    quote location: :keep,
-          bind_quoted: [stream_name: stream_name, state: state] do
-      %{position: pos, global_position: global_pos} = state
-
-      case EspEx.StreamName.category?(stream_name) do
-        true -> {:global, global_pos}
-        _ -> {:local, pos}
-      end
-    end
-  end
-
-  @doc false
-  defmacro read_batch(event_bus, identifier, stream_name, state) do
-    quote location: :keep,
-          bind_quoted: [
-            identifier: identifier,
-            stream_name: stream_name,
-            state: state,
-            module: __MODULE__
-          ] do
-      {_, position} = module.local_or_global_position(stream_name, state)
-
-      module.debug_position(identifier, stream_name, state)
-
-      event_bus.read_batch(stream_name, position)
-    end
-  end
-
-  @doc false
-  defmacro debug_position(identifier, stream_name, state) do
-    quote location: :keep,
-          bind_quoted: [
-            identifier: identifier,
-            stream_name: stream_name,
-            state: state,
-            module: __MODULE__
-          ] do
-      {pos_type, pos} = module.local_or_global_position(stream_name, state)
-
-      module.debug(identifier, fn ->
-        "Requesting events from #{pos_type} #{pos}"
-      end)
-    end
-  end
-
-  @doc false
-  defmacro debug(identifier, msg_or_fn) when is_function(msg_or_fn) do
-    quote location: :keep,
-          bind_quoted: [identifier: identifier, msg_or_fn: msg_or_fn] do
-      Logger.debug(fn -> "[##{identifier}] " <> msg.() end)
-    end
-  end
-
-  @doc false
-  defmacro debug(identifier, msg_or_fn) when is_bitstring(msg_or_fn) do
-    quote location: :keep,
-          bind_quoted: [identifier: identifier, msg_or_fn: msg_or_fn] do
-      Logger.debug(fn -> "[##{identifier}] " <> msg end)
-    end
-  end
-
-  @doc false
-  defmacro handle_event(handler, event_transformer, raw_event, meta) do
-    quote location: :keep,
-          bind_quoted: [
-            handler: handler,
-            event_transformer: event_transformer,
-            raw_event: raw_event,
-            meta: meta
-          ] do
-      event = event_transformer.to_event(raw_event)
-
-      handler.handle(event, raw_event, meta)
-    end
   end
 
   @doc """
@@ -119,23 +42,22 @@ defmodule EspEx.Consumer do
     identifier = Keyword.get(opts, :identifier, default_identifier)
     handler = Keyword.get(opts, :handler, __CALLER__.module)
     listen_opts = Keyword.get(opts, :listen_opts, [])
-    consumer = __MODULE__
 
-    quote location: :keep,
-          bind_quoted: [
-            :event_bus,
-            :event_transformer,
-            :stream_name,
-            :identifier,
-            :handler,
-            :listen_opts,
-            :consumer
-          ] do
+    reader = %__MODULE__.Reader{
+      event_bus: event_bus,
+      event_transformer: event_transformer,
+      stream_name: stream_name,
+      identifier: identifier,
+      handler: handler,
+      listen_opts: listen_opts
+    }
+
+    quote location: :keep, bind_quoted: [reader: reader] do
       use GenServer
 
       @impl GenServer
       def init(meta) do
-        {:ok, listener} = event_bus.listen(stream_name, listen_opts)
+        {:ok, listener} = Reader.listen(reader)
 
         state = %consumer{meta: meta, listener: listener}
         GenServer.cast(self(), {:request_events})
@@ -145,91 +67,19 @@ defmodule EspEx.Consumer do
 
       @impl GenServer
       def handle_cast({:request_events}, %consumer{} = state) do
-        fetch_events(state)
+        Reader.fetch_events(reader, self(), state)
       end
 
       @impl GenServer
       def handle_cast({:process_event}, %consumer{} = state) do
-        consume_event(state)
+        Reader.consume_event(reader, self(), state)
       end
 
       @impl GenServer
-      def terminate(:normal, state),
-        do: event_bus.unlisten(state.listener, listen_opts)
-
-      def terminate(:shutdown, state),
-        do: event_bus.unlisten(state.listener, listen_opts)
-
-      def terminate({:shutdown, _}, state),
-        do: event_bus.unlisten(state.listener, listen_opts)
-
+      def terminate(:normal, state), do: Reader.unlisten(reader, state)
+      def terminate(:shutdown, state), do: Reader.unlisten(reader, state)
+      def terminate({:shutdown, _}, state), do: Reader.unlisten(reader, state)
       defoverridable terminate: 2
-
-      defp fetch_events(%{events: []} = state) do
-        events = read_batch(state)
-
-        state =
-          case events do
-            [] ->
-              state
-
-            _ ->
-              GenServer.cast(self(), {:process_event})
-              Map.put(state, :events, events)
-          end
-
-        {:noreply, state}
-      end
-
-      defp fetch_events(state), do: {:noreply, state}
-
-      defp consume_event(%{events: []} = state) do
-        GenServer.cast(self(), {:request_events})
-        {:noreply, state}
-      end
-
-      defp consume_event(
-             %{
-               events: [raw_event | events],
-               meta: meta
-             } = state
-           ) do
-        consumer.debug(fn ->
-          "[##{identifier}] Consuming event " <>
-            "#{raw_event.type}/#{raw_event.position}"
-        end)
-
-        consumer.handle_event(handler, event_transformer, raw_event, meta)
-        position = EspEx.RawEvent.next_position(raw_event.position)
-        global_position = raw_event.global_position
-        global_position = EspEx.RawEvent.next_global_position(global_position)
-
-        state =
-          state
-          |> Map.put(:events, events)
-          |> Map.put(:position, position)
-          |> Map.put(:global_position, global_position)
-
-        GenServer.cast(self(), {:process_event})
-
-        {:noreply, state}
-      end
-
-      defp read_batch(%{position: pos, global_position: global_pos}) do
-        {pos_type, position} =
-          consumer.local_or_global_position(
-            stream_name,
-            pos,
-            global_pos
-          )
-
-        Logger.debug(fn ->
-          "[##{identifier}] Requesting events P#{pos} G#{global_pos}, " <>
-            "used #{pos_type}"
-        end)
-
-        event_bus.read_batch(stream_name, position)
-      end
     end
   end
 end

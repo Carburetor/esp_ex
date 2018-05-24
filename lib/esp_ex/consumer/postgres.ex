@@ -4,6 +4,9 @@ defmodule EspEx.Consumer.Postgres do
   adapter
   """
 
+  alias EspEx.Consumer
+  alias EspEx.Consumer.Reader
+
   @doc """
   - `:event_transformer` **required** an `EspEx.EventTransformer`
     implementation
@@ -19,39 +22,28 @@ defmodule EspEx.Consumer.Postgres do
     opts = Keyword.put(opts, :event_bus, EspEx.EventBus.Postgres)
     identifier = Keyword.get(opts, :identifier, __CALLER__.module)
 
-    quote do
-      use EspEx.Consumer, opts
-
-      @module EspEx.Consumer
-      @identifier unquote(identifier)
+    quote location: :keep, bind_quoted: [opts: opts, identifier: identifier] do
+      use Consumer, opts
 
       @impl GenServer
       def handle_info(
             {:notification, _, _, channel, _payload},
-            %@module{} = consumer
+            %Consumer{} = state
           ) do
-        debug(fn -> "Notification for stream: #{channel}" end)
+        Reader.debug(identifier, fn -> "Notification for stream: #{channel}" end)
 
         GenServer.cast(self(), {:request_events})
 
-        {:noreply, consumer}
+        {:noreply, state}
       end
 
       @impl GenServer
-      def handle_info({:reminder}, %@module{} = consumer) do
-        debug(fn -> "Reminder" end)
+      def handle_info({:reminder}, %Consumer{} = state) do
+        Reader.debug(identifier, fn -> "Reminder" end)
 
         GenServer.cast(self(), {:request_events})
 
-        {:noreply, consumer}
-      end
-
-      defp debug(msg) when is_function(msg) do
-        EspEx.Logger.debug(fn -> "[##{@identifier}] " <> msg.() end)
-      end
-
-      defp debug(msg) do
-        EspEx.Logger.debug(fn -> "[##{@identifier}] " <> msg end)
+        {:noreply, state}
       end
     end
   end
