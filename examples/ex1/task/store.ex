@@ -1,5 +1,5 @@
 defmodule Ex1.Task.Store do
-  use EspEx.Store,
+  use Delugex.Store,
     entity: Ex1.Task,
     stream_category: "task",
     projection: Ex1.Task.Projection
