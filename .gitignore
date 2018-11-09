@@ -20,8 +20,7 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-delugex-*.tar
+esp_ex-*.tar
 
 mix.lock
 .envrc
-.ruby-version

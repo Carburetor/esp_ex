@@ -5,10 +5,9 @@ config :logger,
   utc_log: true,
   compile_time_purge_level: :debug
 
-config :delugex, Delugex.MessageStore.Postgres, notify: false
-
-config :delugex, Delugex.MessageStore.Postgres.Repo,
-  pool: Ecto.Adapters.SQL.Sandbox,
-  url:
-    System.get_env("TEST_DELUGEX_DATABASE_URL") ||
-      "postgres://message_store:message_store@localhost/delugex_test?pool_size=15"
+config :esp_ex, EspEx.MessageStore.Postgres.Repo,
+  database: System.get_env("ESPEX_DATABASE") || "esp_ex_test",
+  username: System.get_env("ESPEX_USER") || "postgres",
+  password: System.get_env("ESPEX_PASSWORD") || "postgres",
+  hostname: System.get_env("ESPEX_HOSTNAME") || "localhost",
+  pool: Ecto.Adapters.SQL.Sandbox
