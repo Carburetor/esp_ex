@@ -2,14 +2,19 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-config :delugex, Delugex.MessageStore.Postgres.Repo, url: ""
+config :logger,
+  backends: [:console],
+  utc_log: true,
+  compile_time_purge_level: :debug
 
-config :delugex, Delugex.MessageStore.Postgres,
-  stream_name: [decoder: Delugex.Stream.Name],
-  json: [decoder: Jason, encoder: Jason]
+config :ecto, json_library: Jason
+
+config :esp_ex, EspEx.MessageStore.Postgres.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  database: System.get_env("ESPEX_DATABASE") || "esp_ex_dev",
+  username: System.get_env("ESPEX_USER") || "postgres",
+  password: System.get_env("ESPEX_PASSWORD") || "postgres",
+  hostname: System.get_env("ESPEX_HOSTNAME") || "localhost",
+  types: EspEx.MessageStore.Postgres.Types
 
 import_config "./environment/#{Mix.env()}.exs"
-
-if File.exists?(Path.expand("./environment/#{Mix.env()}.secret.exs", __DIR__)) do
-  import_config "./environment/#{Mix.env()}.secret.exs"
-end

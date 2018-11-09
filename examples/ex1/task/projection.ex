@@ -1,7 +1,7 @@
 defmodule Ex1.Task.Projection do
   alias Ex1.Task.Events
 
-  use Delugex.Projection,
+  use EspEx.Projection,
     entity: Ex1.Task,
     apply_unhandled: true
 

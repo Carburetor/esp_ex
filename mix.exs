@@ -1,16 +1,15 @@
-defmodule Delugex.MixProject do
+defmodule EspEx.MixProject do
   use Mix.Project
 
   @version "VERSION" |> File.read!() |> String.trim()
 
   def project do
     [
-      app: :delugex,
+      app: :esp_ex,
       version: @version,
-      elixir: "~> 1.7",
+      elixir: "~> 1.6",
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
-      test_paths: ["test/automated"],
       dialyzer: [
         plt_add_apps: [:mnesia],
         flags: [
@@ -18,30 +17,31 @@ defmodule Delugex.MixProject do
           :error_handling,
           :race_conditions
         ],
-        paths: ["_build/#{Mix.env()}/lib/delugex/consolidated"]
+        paths: ["_build/#{Mix.env()}/lib/esp_ex/consolidated"]
       ]
+      # aliases: [test: "test --no-start"]
     ]
   end
 
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {EspEx.Application, []}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:dialyxir, ">= 0.5.0", only: [:dev], runtime: false},
-      {:ecto, ">= 3.0.0"},
-      {:ecto_sql, ">= 3.0.0"},
-      {:postgrex, ">= 0.14.0"},
-      {:jason, ">= 1.1.0"},
-      {:ex2ms, ">= 1.5.0"}
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:ecto, "~> 2.2"},
+      {:postgrex, "~> 0.13"},
+      {:jason, "~> 1.0.0"},
+      {:uuid, "~> 1.1"}
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/automated/support"]
+  defp elixirc_paths(:test), do: ["lib"]
   defp elixirc_paths(_), do: ["lib"]
 end
